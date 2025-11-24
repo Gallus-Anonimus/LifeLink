@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Redirecting…</title>
+    <meta http-equiv="refresh" content="0; url=/LifeLink/" />
+    <script>
+      (function () {
+        var base = '/LifeLink';
+        var path = window.location.pathname;
+        if (path.startsWith(base)) {
+          path = path.slice(base.length) || '/';
+        }
+        var search = window.location.search || '';
+        var hash = window.location.hash || '';
+        sessionStorage.setItem(
+          'lifeline-redirect-path',
+          path + search + hash
+        );
+        window.location.replace(base + '/');
+      })();
+    </script>
+  </head>
+  <body>
+    <p>Redirecting…</p>
+  </body>
+</html>
+
