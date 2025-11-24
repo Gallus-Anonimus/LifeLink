@@ -15,11 +15,11 @@ function App() {
             <div className="col">
                 <NavBar/>
                 <Routes>
-                    <Route path="/LifeLink/login" element={<Login />} />
-                    <Route path="/LifeLink/" element={<Login />} />
-                    <Route path="/LifeLink/card/:NFC" element={<MedicalCard />} />
-                    <Route path="/LifeLink/dashboard" element={<Dashboard />} />
-                    <Route path="/LifeLink/register" element={<Register />} />
+                    <Route path="login" element={<Login />} />
+                    <Route path="/" element={<Login />} />
+                    <Route path="/card/:NFC" element={<MedicalCard />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/register" element={<Register />} />
                 </Routes>
             </div>
         </div>
