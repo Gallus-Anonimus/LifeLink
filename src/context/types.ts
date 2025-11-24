@@ -37,7 +37,7 @@ export interface PatientInfoProps {
 
 export interface FetcheData {
     patient: PatientInfoType;
-    card: Card[];
+    card: Card;
 
 }
 
@@ -45,9 +45,9 @@ export interface Card {
     allergies: Allergy[];
     chronicDiseases: ChronicDisease[];
     medicalCheckups: MedicalCheckup[];
-    diagnoses: Diagnosis[];
-    procedures: Procedure[];
-    medications: Medication[];
+    medicalDiagnoses: Diagnosis[];
+    medicalProcedures: Procedure[];
+    medicines: Medication[];
     vaccinations: Vaccination[];
 }
 
@@ -123,7 +123,7 @@ export interface Vaccination {
     doseNumber: number,
     vaccinationDate: string,
     notes?: string | null,
-    vaccine: Vaccine[]
+    vaccine: Vaccine
 }
 
 export interface Vaccine {

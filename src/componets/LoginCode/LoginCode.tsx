@@ -15,6 +15,7 @@ import { t, tt } from "../../assets/languages.ts";
 import { passes } from "../../assets/pass.ts";
 import { useLanguage } from "../../context/LanguageContext.tsx";
 import { fetchApi } from "../../context/utils.ts";
+import {IconUser} from "@tabler/icons-react";
 
 interface LoginCodeProps {
     NFCcode?: string;
@@ -165,7 +166,7 @@ const LoginCode = ({ NFCcode, onSuccess }: LoginCodeProps = {} as LoginCodeProps
                                     fontSize: 18,
                                 }}
                             >
-                                <img src="/user.svg" alt="user avatar" />
+                                <IconUser stroke={2} />
                             </div>
                         </Col>
                         <Col>

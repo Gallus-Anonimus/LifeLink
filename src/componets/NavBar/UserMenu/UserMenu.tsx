@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import {
     IconUserCircle,
     IconLayoutDashboard,
-    IconId,
     IconLogin,
     IconLogout,
     IconUserPlus,

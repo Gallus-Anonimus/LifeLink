@@ -3,19 +3,19 @@ import {t} from "../../../../assets/languages.ts";
 import {useLanguage} from "../../../../context/LanguageContext.tsx";
 
 type Props = {
-    person: PersonType;
+    person: PersonType | null | undefined;
     onChange: (person: PersonType) => void;
 };
 
 export const Person = ({ person, onChange }: Props) => {
-    const update = (patch: Partial<PersonType>) =>
-        onChange({ ...(person ?? {}), ...patch });
-
     const {lang} = useLanguage();
 
     if (person == null) {
-        return <></>;
+        return null;
     }
+
+    const update = (patch: Partial<PersonType>) =>
+        onChange({ ...person, ...patch });
 
     return (
         <>

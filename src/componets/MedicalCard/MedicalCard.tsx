@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { useLanguage } from "../../context/LanguageContext.tsx";
 import { t } from "../../assets/languages.ts";
 import { useState, useEffect, useCallback } from "react";
-import type { MedicalCardData } from "./types.ts";
+import type { MedicalCardData, Pacjent } from "./types.ts";
 import PatientInfo from "./PatientInfo/PatientInfo.tsx";
 import AllergiesList from "./AllergiesList/AllergiesList.tsx";
 import ChronicDiseasesList from "./ChronicDiseasesList/ChronicDiseasesList.tsx";
@@ -13,6 +13,126 @@ import DiagnosesList from "./DiagnosesList/DiagnosesList.tsx";
 import ProceduresList from "./ProceduresList/ProceduresList.tsx";
 import LoginCode from "../LoginCode/LoginCode.tsx";
 import { fetchApi } from "../../context/utils.ts";
+import type {
+    FetcheData,
+    PatientInfoType,
+    Address,
+    Allergy,
+    ChronicDisease,
+    MedicalCheckup,
+    Diagnosis,
+    Procedure,
+    Medication,
+    Vaccination,
+} from "../../context/types.ts";
+
+const formatAddress = (address?: Address | null): string => {
+    if (!address) return "";
+    const line1 = [address.street, address.buildingNumber].filter(Boolean).join(" ").trim();
+    const line2 = [address.postalCode, address.city].filter(Boolean).join(" ").trim();
+    return [line1, line2, address.country].filter(Boolean).join(", ");
+};
+
+const mapPacjent = (patient?: PatientInfoType | null): Pacjent | null => {
+    if (!patient || !patient.person) {
+        return null;
+    }
+    const { person, contactPerson } = patient;
+    return {
+        id_pacjenta: person.personId ?? 0,
+        imie: person.firstName ?? "",
+        nazwisko: person.lastName ?? "",
+        pesel: patient.pesel ?? "",
+        data_urodzenia: patient.dateOfBirth ?? "",
+        telefon: person.phoneNumber ?? "",
+        adres: formatAddress(person.address),
+        osoba_kontaktowa: contactPerson
+            ? [contactPerson.firstName, contactPerson.lastName].filter(Boolean).join(" ").trim()
+            : "",
+        telefon_kontaktowy: contactPerson?.phoneNumber ?? "",
+    };
+};
+
+const transformMedicalCardData = (apiData: Partial<FetcheData>): MedicalCardData => {
+    const pacjent = mapPacjent(apiData.patient);
+    const patientId = pacjent?.id_pacjenta ?? 0;
+
+    const mapAllergies = (items?: Allergy[]) =>
+        (items ?? []).map((allergy) => ({
+            id_alergii: allergy.allergyId,
+            id_pacjenta: patientId,
+            nazwa: allergy.name,
+            opis: allergy.description ?? "",
+        }));
+
+    const mapChronicDiseases = (items?: ChronicDisease[]) =>
+        (items ?? []).map((disease) => ({
+            id_choroby: disease.diseaseId,
+            id_pacjenta: patientId,
+            nazwa: disease.name,
+            data_rozpoznania: disease.diagnosisDate ?? "",
+            uwagi: disease.notes ?? "",
+        }));
+
+    const mapMedicines = (items?: Medication[]) =>
+        (items ?? []).map((med) => ({
+            id_leku: med.medicineId,
+            id_pacjenta: patientId,
+            nazwa: med.name,
+            dawka: med.dosage ?? "",
+            czestotliwosc: med.frequency ?? "",
+            od_kiedy: med.startDate ?? "",
+            do_kiedy: med.endDate ?? null,
+        }));
+
+    const mapVaccinations = (items?: Vaccination[]) =>
+        (items ?? []).map((vaccination) => ({
+            id_szczepienia: vaccination.vaccinationId,
+            id_pacjenta: patientId,
+            nazwa: vaccination.vaccine?.name ?? "",
+            data_szczepienia: vaccination.vaccinationDate ?? "",
+            dawka_nr: vaccination.doseNumber ?? 0,
+            uwagi: vaccination.notes ?? null,
+        }));
+
+    const mapCheckups = (items?: MedicalCheckup[]) =>
+        (items ?? []).map((checkup) => ({
+            id_badania: checkup.checkupId,
+            id_wizyty: checkup.checkupId,
+            typ_badania: checkup.checkupDetails || `#${checkup.checkupId}`,
+            wynik: checkup.checkupDetails || "-",
+            data_badania: checkup.checkupDate ?? "",
+            plik_wyniku: null,
+        }));
+
+    const mapDiagnoses = (items?: Diagnosis[]) =>
+        (items ?? []).map((diagnosis) => ({
+            id_rozpoznania: diagnosis.diagnosisId,
+            id_wizyty: diagnosis.diagnosisId,
+            kod_icd: diagnosis.icdCode ?? "",
+            opis: diagnosis.description ?? "",
+        }));
+
+    const mapProcedures = (items?: Procedure[]) =>
+        (items ?? []).map((procedure) => ({
+            id_zabiegu: procedure.procedureId,
+            id_wizyty: procedure.procedureId,
+            kod_procedury: procedure.cptCode ?? "",
+            opis: procedure.procedureDescription ?? "",
+            data_zabiegu: procedure.date ?? "",
+        }));
+
+    return {
+        pacjent,
+        alergie: mapAllergies(apiData.card?.allergies),
+        choroby_przewlekle: mapChronicDiseases(apiData.card?.chronicDiseases),
+        leki: mapMedicines(apiData.card?.medicines),
+        szczepienia: mapVaccinations(apiData.card?.vaccinations),
+        badania: mapCheckups(apiData.card?.medicalCheckups),
+        rozpoznania: mapDiagnoses(apiData.card?.medicalDiagnoses),
+        zabiegi: mapProcedures(apiData.card?.medicalProcedures),
+    };
+};
 
 const MedicalCard = () => {
     const { lang } = useLanguage();
@@ -62,20 +182,8 @@ const MedicalCard = () => {
                 throw new Error(errorData.details || errorData.message || `Failed to fetch: ${response.status}`);
             }
 
-            const apiData = await response.json();
-
-            const medicalData: MedicalCardData = {
-                pacjent: apiData.patient || null,
-                alergie: apiData.card?.allergies || [],
-                choroby_przewlekle: apiData.card?.chronicDiseases || [],
-                badania: apiData.card?.medicalCheckups || [],
-                rozpoznania: apiData.card?.medicalDiagnoses || [],
-                zabiegi: apiData.card?.medicalProcedures || [],
-                leki: apiData.card?.medicines || [],
-                szczepienia: apiData.card?.vaccinations || []
-            };
-            
-            setData(medicalData);
+            const apiData: Partial<FetcheData> = await response.json();
+            setData(transformMedicalCardData(apiData));
             setShowLoginCode(false);
         } catch (err) {
             setError(err instanceof Error ? err.message : t("medicalcard.error", lang));
