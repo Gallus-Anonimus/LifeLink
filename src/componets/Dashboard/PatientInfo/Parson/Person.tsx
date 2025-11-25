@@ -54,9 +54,13 @@ export const Person = ({ person, onChange }: Props) => {
 
                 <div className="col-6">
                     <label className="form-label fw-semibold">{t("form.Gender",lang)}</label>
-                    <select className="form-select">
-                        <option value="male" selected={person.gender === "Male"}>{t("form.male",lang)}</option>
-                        <option value="female" selected={person.gender === "Female"}>{t("form.female",lang)}</option>
+                    <select 
+                        className="form-select"
+                        value={person.gender}
+                        onChange={(e) => update({ gender: e.target.value as "MALE" | "FEMALE" })}
+                    >
+                        <option value="MALE">{t("form.male",lang)}</option>
+                        <option value="FEMALE">{t("form.female",lang)}</option>
                     </select>
                 </div>
             </div>

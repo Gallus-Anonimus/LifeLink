@@ -28,4 +28,26 @@ export const changeDate = (dateString: string): string => {
     return `${day}-${month}-${year}`;
 }
 
+export const reverseDate = (dateString: string): string => {
+    if (!dateString) return '';
+    if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        const [year, month, day] = dateString.split('-');
+        if (year && year.length === 4 && year.startsWith('0')) {
+            const fixedYear = '2' + year.substring(1);
+            return `${fixedYear}-${month}-${day}`;
+        }
+        return dateString;
+    }
+    if (dateString.match(/^\d{2}-\d{2}-\d{4}$/)) {
+        const [day, month, year] = dateString.split('-');
+        return `${year}-${month}-${day}`;
+    }
+    if (dateString.match(/^\d{2}\.\d{2}\.\d{4}$/)) {
+        const [day, month, year] = dateString.split('.');
+        return `${year}-${month}-${day}`;
+    }
+
+    return dateString;
+}
+
 

@@ -5,18 +5,23 @@ import {
     IconLogin,
     IconLogout,
     IconUserPlus,
+    IconNfc,
 } from "@tabler/icons-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useLanguage } from "../../../context/LanguageContext.tsx";
 import { t } from "../../../assets/languages.ts";
 import {fetchApi} from "../../../context/utils.ts";
 
+interface UserMenuProps {
+    onNfcClick?: () => void;
+}
+
 const menuContainerStyle: CSSProperties = {
     minWidth: "14rem",
     zIndex: 20,
 };
 
-const UserMenu = () => {
+const UserMenu = ({ onNfcClick }: UserMenuProps) => {
     const navigate = useNavigate();
     const location = useLocation();
     const { lang } = useLanguage();
@@ -50,25 +55,55 @@ const UserMenu = () => {
             key: "dashboard",
             label: t("nav.menu.dashboard", lang),
             icon: IconLayoutDashboard,
-            action: () => navigate("/dashboard"),
+            action: () => {
+                setOpen(false);
+                navigate("/dashboard");
+            },
         },
         {
-            key: "login",
-            label: t("nav.menu.login", lang),
-            icon: IconLogin,
-            action: () => navigate("/login"),
-        },
-        {
-            key: "logout",
-            label: t("nav.menu.logout", lang),
-            icon: IconLogout,
-            action: () => fetchApi("POST", "/auth/logout").then(() => navigate("/login")),
+            key: "nfc",
+            label: t("nav.menu.nfc", lang),
+            icon: IconNfc,
+            action: () => {
+                setOpen(false);
+                onNfcClick?.();
+            },
         },
         {
             key: "register",
             label: t("nav.menu.register", lang),
             icon: IconUserPlus,
-            action: () => navigate("/register"),
+            action: () => {
+                setOpen(false);
+                navigate("/register");
+            },
+        },
+        {
+            key: "login",
+            label: t("nav.menu.login", lang),
+            icon: IconLogin,
+            action: () => {
+                setOpen(false);
+                navigate("/login");
+            },
+        },
+        {
+            key: "logout",
+            label: t("nav.menu.logout", lang),
+            icon: IconLogout,
+            action: () => {
+                setOpen(false);
+                fetchApi("POST", "/auth/logout").then(() => navigate("/login"));
+            },
+        },
+        {
+            key: "about",
+            label: t("nav.menu.about", lang),
+            icon: IconUserPlus,
+            action: () => {
+                setOpen(false);
+                navigate("/about-us");
+            },
         },
     ];
 

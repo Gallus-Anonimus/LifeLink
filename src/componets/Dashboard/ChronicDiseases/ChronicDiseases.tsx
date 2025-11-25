@@ -126,7 +126,7 @@ export const ChronicDiseases = ({ chronicdiseases }: ChronicDiseasesProps) => {
                             </div>
                             <button className="btn btn-sm btn-outline-warning text-dark d-flex align-items-center" onClick={() => deleteChronicDiseases(disease.diseaseId)}>
                                 <IconTrash size={16} className="me-1" />
-                                Usuń
+                                {t("button.delete", lang)}
                             </button>
                         </div>
                     ))}

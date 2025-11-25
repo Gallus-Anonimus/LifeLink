@@ -1,9 +1,12 @@
+import { useLanguage } from "../../../context/LanguageContext.tsx";
+import { t } from "../../../assets/languages.ts";
 import { IconPill, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useState } from "react";
 import {changeDate, fetchApi} from "../../../context/utils.ts";
 import {type Medication, type MedicationsProps} from "../../../context/types.ts"
 
 export const Medications = ({ medications: initialMedications = [] }: MedicationsProps) => {
+    const { lang } = useLanguage();
     const [medications, setMedications] = useState<Medication[]>(initialMedications);
     const [showAdd, setShowAdd] = useState(false);
     const [newName, setNewName] = useState("");
@@ -78,43 +81,42 @@ export const Medications = ({ medications: initialMedications = [] }: Medication
                 <div className="card-header bg-info text-white d-flex justify-content-between align-items-center" style={{ borderRadius: "12px 12px 0 0", padding: "1rem 1.25rem" }}>
                     <h5 className="mb-0 d-flex align-items-center">
                         <IconPill size={20} className="me-2" />
-                        Medications
+                        {t("medicalcard.medications", lang)}
                     </h5>
                     <button className="btn btn-sm btn-light d-flex align-items-center" onClick={() => setShowAdd(v => !v)}>
                         <IconPlus size={16} />
-                        <span className="ms-1">Add</span>
                     </button>
                 </div>
                 <div className="card-body p-3" style={{ maxHeight: "400px", overflowY: "auto" }}>
                     {showAdd && (
                         <form onSubmit={handleAdd} className="border rounded p-3 mb-3" style={{ backgroundColor: "#f0f9ff" }}>
                             <div className="mb-2">
-                                <label className="form-label small fw-semibold text-muted mb-1">Name</label>
+                                <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.medication_name", lang)}</label>
                                 <input className="form-control form-control-sm" value={newName} onChange={e => setNewName(e.target.value)} required />
                             </div>
                             <div className="row g-2">
                                 <div className="col-6">
-                                    <label className="form-label small fw-semibold text-muted mb-1">Dosage</label>
+                                    <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.dose", lang)}</label>
                                     <input className="form-control form-control-sm" value={newDosage} onChange={e => setNewDosage(e.target.value)} />
                                 </div>
                                 <div className="col-6">
-                                    <label className="form-label small fw-semibold text-muted mb-1">Frequency</label>
+                                    <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.frequency", lang)}</label>
                                     <input className="form-control form-control-sm" value={newFrequency} onChange={e => setNewFrequency(e.target.value)} />
                                 </div>
                             </div>
                             <div className="row g-2 mt-2">
                                 <div className="col-6">
-                                    <label className="form-label small fw-semibold text-muted mb-1">Start date</label>
+                                    <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.start_date", lang)}</label>
                                     <input type="date" className="form-control form-control-sm" value={newStartDate} onChange={e => setNewStartDate(e.target.value)} />
                                 </div>
                                 <div className="col-6">
-                                    <label className="form-label small fw-semibold text-muted mb-1">End date</label>
+                                    <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.end_date", lang)}</label>
                                     <input type="date" className="form-control form-control-sm" value={newEndDate} onChange={e => setNewEndDate(e.target.value)} />
                                 </div>
                             </div>
                             <div className="mt-2 d-flex gap-2">
-                                <button type="submit" className="btn btn-sm btn-info text-white">Save</button>
-                                <button type="button" className="btn btn-sm btn-light" onClick={() => setShowAdd(false)}>Cancel</button>
+                                <button type="submit" className="btn btn-sm btn-info text-white">{t("button.save", lang)}</button>
+                                <button type="button" className="btn btn-sm btn-light" onClick={() => setShowAdd(false)}>{t("button.cancel", lang)}</button>
                             </div>
                         </form>
                     )}
@@ -122,33 +124,33 @@ export const Medications = ({ medications: initialMedications = [] }: Medication
                     {medications.map((med) => (
                         <div key={med.medicineId} className="border rounded p-3 mb-3" style={{ backgroundColor: "#f0f9ff" }}>
                             <div className="mb-2">
-                                <label className="form-label small fw-semibold text-muted mb-1">Medication name</label>
+                                <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.medication_name", lang)}</label>
                                 <input type="text" className="form-control form-control-sm" value={med.name} readOnly />
                             </div>
                             <div className="row g-2">
                                 <div className="col-6">
-                                    <label className="form-label small fw-semibold text-muted mb-1">Dose</label>
+                                    <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.dose", lang)}</label>
                                     <input type="text" className="form-control form-control-sm" value={med.dosage} readOnly />
                                 </div>
                                 <div className="col-6">
-                                    <label className="form-label small fw-semibold text-muted mb-1">Frequency</label>
+                                    <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.frequency", lang)}</label>
                                     <input type="text" className="form-control form-control-sm" value={med.frequency} readOnly />
                                 </div>
                             </div>
                             <div className="row g-2 mt-2">
                                 <div className="col-6">
-                                    <label className="form-label small fw-semibold text-muted mb-1">From</label>
+                                    <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.from_date", lang)}</label>
                                     <input type="date" className="form-control form-control-sm" value={med.startDate} readOnly />
                                 </div>
                                 <div className="col-6">
-                                    <label className="form-label small fw-semibold text-muted mb-1">To</label>
+                                    <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.to_date", lang)}</label>
                                     <input type="date" className="form-control form-control-sm" value={med.endDate || ""} readOnly />
                                 </div>
                             </div>
                             <div className="d-flex justify-content-end mt-2">
                                 <button className="btn btn-sm btn-outline-info d-flex align-items-center" onClick={() => deleteMedication(med.medicineId)}>
                                 <IconTrash size={16} className="me-1" />
-                                    Delete
+                                    {t("button.delete", lang)}
                             </button>
                         </div>
                         </div>

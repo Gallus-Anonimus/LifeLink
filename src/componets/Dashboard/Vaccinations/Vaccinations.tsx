@@ -116,7 +116,7 @@ export const Vaccinations = ({ vaccinations: initialVaccinations }: Vaccinations
                                 <div className="col-6">
                                     <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.vaccine_type", lang)}</label>
                                     <select className="form-select" value={newVaccineId ?? ""} onChange={e => setNewVaccineId(e.target.value ? Number(e.target.value) : null)} required>
-                                        <option value="">{t("medicalcard.select_vaccine", lang) ?? "Wybierz szczepionkę"}</option>
+                                        <option value="">{t("medicalcard.select_vaccine", lang)}</option>
                                         {vaccineList.map(vaccine => (
                                             <option key={vaccine.vaccineId} value={vaccine.vaccineId}>{vaccine.name}</option>
                                         ))}
@@ -133,10 +133,10 @@ export const Vaccinations = ({ vaccinations: initialVaccinations }: Vaccinations
                             </div>
                             <div className="d-flex justify-content-end mt-2">
                                 <button type="button" className="btn btn-sm btn-light me-2" onClick={() => { setShowAdd(false); setNewName(""); setNewDesc(""); setNewDate(""); setNewDose(1); setNewNotes(""); }}>
-                                    Anuluj
+                                    {t("button.cancel", lang)}
                                 </button>
                                 <button type="submit" className="btn btn-sm btn-success">
-                                    Dodaj
+                                    {t("button.add", lang)}
                                 </button>
                             </div>
                         </form>
@@ -164,7 +164,7 @@ export const Vaccinations = ({ vaccinations: initialVaccinations }: Vaccinations
                             </div>
                             <button className="btn btn-sm btn-outline-success d-flex align-items-center" onClick={() => deleteVaccination(vacc.vaccinationId)}>
                                 <IconTrash size={16} className="me-1" />
-                                Usuń
+                                {t("button.delete", lang)}
                             </button>
                         </div>
                     ))}

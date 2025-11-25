@@ -1,13 +1,20 @@
 import { useState } from "react";
-
+import { useLanguage } from "../../../context/LanguageContext.tsx";
+import { t } from "../../../assets/languages.ts";
 import { IconScissors, IconPlus, IconTrash } from "@tabler/icons-react";
-import {changeDate, fetchApi} from "../../../context/utils.ts";
+import {changeDate, fetchApi, reverseDate} from "../../../context/utils.ts";
 import type {Procedure, ProceduresEditProps} from "../../../context/types.ts";
 
 
 export const Procedures = ({ procedures }: ProceduresEditProps) => {
-    const [proceduresList, setProceduresList] = useState<Procedure[]>(procedures);
+    const { lang } = useLanguage();
+    const mappedProcedures = procedures.map(proc => ({
+        ...proc,
+        date: (proc as any).procedureDate || proc.date || ''
+    }));
+    const [proceduresList, setProceduresList] = useState<Procedure[]>(mappedProcedures);
     const [isAdding, setIsAdding] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [newProcedure, setNewProcedure] = useState<Omit<Procedure, 'procedureId'>>({
         cptCode: '',
         procedureDescription: '',
@@ -16,9 +23,17 @@ export const Procedures = ({ procedures }: ProceduresEditProps) => {
 
     const handleAddProcedure = async (e?: React.FormEvent) => {
         e?.preventDefault();
+        setError(null);
+        
+        const trimmedDescription = newProcedure.procedureDescription.trim();
+        if (!trimmedDescription) {
+            setError("Procedure description cannot be empty");
+            return;
+        }
+
         const payload = {
             cptCode: newProcedure.cptCode.trim(),
-            procedureDescription: newProcedure.procedureDescription,
+            description: trimmedDescription,
             date: changeDate(newProcedure.date),
         };
         try {
@@ -28,13 +43,24 @@ export const Procedures = ({ procedures }: ProceduresEditProps) => {
             });
             if (res.ok) {
                 const data = await res.json();
-                setProceduresList(prev => [...prev, data]);
+                const mappedData: Procedure = {
+                    procedureId: data.procedureId,
+                    cptCode: data.cptCode,
+                    procedureDescription: data.procedureDescription,
+                    date: data.procedureDate || data.date || ''
+                };
+                setProceduresList(prev => [...prev, mappedData]);
                 setNewProcedure({ cptCode: '', procedureDescription: '', date: '' });
                 setIsAdding(false);
+                setError(null);
             } else {
-                console.error("Add failed", res.status);
+                const errorData = await res.json().catch(() => ({}));
+                const errorMessage = errorData.details?.description?.[0] || errorData.message || `Failed to add procedure (${res.status})`;
+                setError(errorMessage);
+                console.error("Add failed", res.status, errorData);
             }
         } catch (err) {
+            setError("Failed to add procedure. Please try again.");
             console.error("Add error", err);
         }
     };
@@ -59,7 +85,7 @@ export const Procedures = ({ procedures }: ProceduresEditProps) => {
                 <div className="card-header text-white d-flex justify-content-between align-items-center" style={{ backgroundColor: "#20c997", borderRadius: "12px 12px 0 0", padding: "1rem 1.25rem" }}>
                     <h5 className="mb-0 d-flex align-items-center">
                         <IconScissors size={20} className="me-2" />
-                        Procedures
+                        {t("medicalcard.procedures", lang)}
                     </h5>
                     <button className="btn btn-sm btn-light" onClick={() => setIsAdding(!isAdding)}>
                         <IconPlus size={16} />
@@ -68,28 +94,38 @@ export const Procedures = ({ procedures }: ProceduresEditProps) => {
                 <div className="card-body p-3" style={{ maxHeight: "400px", overflowY: "auto" }}>
                     {isAdding && (
                         <div className="border rounded p-3 mb-3" style={{ backgroundColor: "#e6fcf5" }}>
+                            {error && (
+                                <div className="alert alert-danger alert-dismissible fade show" role="alert" style={{ fontSize: "0.875rem", padding: "0.5rem 0.75rem" }}>
+                                    {error}
+                                    <button type="button" className="btn-close btn-close-sm" onClick={() => setError(null)} aria-label="Close"></button>
+                                </div>
+                            )}
                             <div className="mb-2">
-                                <label className="form-label small fw-semibold text-muted mb-1">CPT Code</label>
+                                <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.procedure_code", lang)}</label>
                                 <input
                                     type="text"
                                     className="form-control form-control-sm"
                                     value={newProcedure.cptCode}
                                     onChange={(e) => setNewProcedure({ ...newProcedure, cptCode: e.target.value })}
-                                    placeholder="Enter CPT code"
+                                    placeholder={t("medicalcard.procedure_code", lang)}
                                 />
                             </div>
                             <div className="mb-2">
-                                <label className="form-label small fw-semibold text-muted mb-1">Description</label>
+                                <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.description", lang)}</label>
                                 <textarea
                                     className="form-control form-control-sm"
                                     rows={2}
                                     value={newProcedure.procedureDescription}
-                                    onChange={(e) => setNewProcedure({ ...newProcedure, procedureDescription: e.target.value })}
-                                    placeholder="Enter procedure description"
+                                    onChange={(e) => {
+                                        setNewProcedure({ ...newProcedure, procedureDescription: e.target.value });
+                                        setError(null);
+                                    }}
+                                    placeholder={t("medicalcard.description", lang)}
+                                    required
                                 ></textarea>
                             </div>
                             <div className="mb-2">
-                                <label className="form-label small fw-semibold text-muted mb-1">Procedure Date</label>
+                                <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.procedure_date", lang)}</label>
                                 <input
                                     type="date"
                                     className="form-control form-control-sm"
@@ -99,34 +135,40 @@ export const Procedures = ({ procedures }: ProceduresEditProps) => {
                             </div>
                             <div className="d-flex gap-2">
                                 <button className="btn btn-sm btn-success" onClick={handleAddProcedure}>
-                                    Add
+                                    {t("button.add", lang)}
                                 </button>
-                                <button className="btn btn-sm btn-secondary" onClick={() => setIsAdding(false)}>
-                                    Cancel
+                                <button className="btn btn-sm btn-secondary" onClick={() => {
+                                    setIsAdding(false);
+                                    setError(null);
+                                }}>
+                                    {t("button.cancel", lang)}
                                 </button>
                             </div>
                         </div>
                     )}
-                    {proceduresList.map((proc) => (
+                    {proceduresList.map((proc) => {
+                        const dateValue = (proc as any).procedureDate || proc.date || '';
+                        return (
                         <div key={proc.procedureId} className="border rounded p-3 mb-3" style={{ backgroundColor: "#e6fcf5" }}>
                             <div className="mb-2">
-                                <label className="form-label small fw-semibold text-muted mb-1">CPT Code</label>
+                                <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.procedure_code", lang)}</label>
                                 <input type="text" className="form-control form-control-sm" value={proc.cptCode} readOnly />
                             </div>
                             <div className="mb-2">
-                                <label className="form-label small fw-semibold text-muted mb-1">Description</label>
+                                <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.description", lang)}</label>
                                 <textarea className="form-control form-control-sm" rows={2} value={proc.procedureDescription} readOnly></textarea>
                             </div>
                             <div className="mb-2">
-                                <label className="form-label small fw-semibold text-muted mb-1">Procedure Date</label>
-                                <input type="date" className="form-control form-control-sm" value={proc.date} readOnly />
+                                <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.procedure_date", lang)}</label>
+                                <input type="date" className="form-control form-control-sm" value={reverseDate(dateValue)} readOnly />
                             </div>
                             <button className="btn btn-sm btn-outline-success d-flex align-items-center" onClick={() => handleDeleteProcedure(proc.procedureId)}>
                                 <IconTrash size={16} className="me-1" />
-                                Delete
+                                {t("button.delete", lang)}
                             </button>
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
         </div>

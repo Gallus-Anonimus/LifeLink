@@ -137,7 +137,7 @@ export const MedicalCheckup = () => {
 
                             <div className="mt-2 d-flex gap-2">
                                 <button type="submit" className="btn btn-sm btn-primary" disabled={submitting}>
-                                    {submitting ? t("button.saving", lang) ?? "Saving..." : t("button.add", lang) ?? "Add"}
+                                    {submitting ? t("button.saving", lang) : t("button.add", lang)}
                                 </button>
                                 <button
                                     type="button"
@@ -145,16 +145,16 @@ export const MedicalCheckup = () => {
                                     onClick={() => setShowAdd(false)}
                                     disabled={submitting}
                                 >
-                                    {t("button.cancel", lang) ?? "Cancel"}
+                                    {t("button.cancel", lang)}
                                 </button>
                             </div>
                         </form>
                     )}
 
-                    {loading && <div className="text-muted">{t("loading", lang) ?? "Loading..."}</div>}
+                    {loading && <div className="text-muted">{t("loading", lang)}</div>}
                     {error && <div className="text-danger small mb-2">{error}</div>}
 
-                    {!loading && items.length === 0 && <div className="text-muted">{t("no_items", lang) ?? "No examinations"}</div>}
+                    {!loading && items.length === 0 && <div className="text-muted">{t("medicalcard.no_data", lang)}</div>}
 
                     {items.map((exam) => (
                         <div key={exam.checkupId} className="border rounded p-3 mb-3" style={{ backgroundColor: "#faf5ff" }}>

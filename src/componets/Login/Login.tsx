@@ -2,8 +2,9 @@ import {type FormEvent, useEffect, useState} from "react";
 import { Navigate } from "react-router-dom";
 import {Button, Card, Col, Form, InputGroup, Row, Spinner} from "react-bootstrap";
 import {t} from "../../assets/languages.ts";
-import { fetchSesion} from "../../context/utils.ts";
+import { fetchSesion, fetchApi} from "../../context/utils.ts";
 import {useLanguage} from "../../context/LanguageContext.tsx";
+import {IconUser} from "@tabler/icons-react";
 
 
 
@@ -14,19 +15,19 @@ export const Login = () => {
     const { lang } = useLanguage();
 
 
-    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        fetch('https://dom.optotel.pl/api/auth/login', {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                pesel: pesel,
-                password: password
-            })
-        }).then(res => setLoggedIn(res.ok))
+        try {
+            const res = await fetchApi('POST', '/auth/login', {
+                body: JSON.stringify({
+                    pesel: pesel,
+                    password: password
+                })
+            });
+            setLoggedIn(res.ok);
+        } catch (err) {
+            setLoggedIn(false);
+        }
     }
 
     useEffect(() => {
@@ -66,7 +67,7 @@ export const Login = () => {
                                     fontSize: 18,
                                 }}
                             >
-                                <img src="/user.svg" alt="user avatar" />
+                                <IconUser stroke={2} />
                             </div>
                         </Col>
                         <Col>

@@ -18,7 +18,7 @@ export interface Person  {
     middleName?: string| null ,
     lastName: string,
     phoneNumber: string,
-    gender: "Male" | "Female",
+    gender: "MALE" | "FEMALE",
     address: Address,
 }
 
@@ -33,6 +33,7 @@ export interface PatientInfoType {
 
 export interface PatientInfoProps {
     patient: PatientInfoType,
+    onDataSaved?: () => void;
 }
 
 export interface FetcheData {

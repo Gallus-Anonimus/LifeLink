@@ -1,0 +1,99 @@
+.nfc-card-wrapper {
+    max-width: 340px;
+}
+
+.nfc-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+    padding: 1rem;
+}
+
+.nfc-modal-content {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.nfc-card {
+    border-radius: 1.5rem;
+    padding: 1.25rem;
+    background: linear-gradient(135deg, #eff6ff 0%, #ffffff 65%);
+}
+
+.nfc-card__header {
+    display: flex;
+    gap: 0.85rem;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.nfc-card__icon-wrapper {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: rgba(33, 150, 243, 0.12);
+    color: #0b5ed7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.nfc-card__pulse {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid rgba(13, 110, 253, 0.2);
+    opacity: 0;
+}
+
+.nfc-card.is-scanning .nfc-card__pulse {
+    animation: nfc-pulse 1.5s ease-out infinite;
+}
+
+@keyframes nfc-pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.6;
+    }
+    100% {
+        transform: scale(1.35);
+        opacity: 0;
+    }
+}
+
+.nfc-card__title {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.nfc-card__subtitle {
+    font-size: 0.85rem;
+}
+
+.nfc-card__btn {
+    border-radius: 999px;
+    padding: 0.65rem 1rem;
+}
+
+.nfc-card__hint {
+    margin-top: 0.75rem;
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.nfc-card__error {
+    min-height: 1rem;
+}
+
+
+

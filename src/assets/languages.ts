@@ -2,20 +2,49 @@ export type Lang = "pl" | "en";
 export type LocaleRow = [string, string, string];
 
 export const locales: LocaleRow[] = [
-    ["app.title", "Moj LifeLine", "My LifeLine"],
     ["nav.menu.profile", "Profil użytkownika", "User profile"],
     ["nav.menu.dashboard", "Panel główny", "Dashboard"],
     ["nav.menu.card", "Karta pacjenta", "Medical card"],
     ["nav.menu.login", "Przejdź do logowania", "Go to login"],
     ["nav.menu.register"," Zarejestruj się", "Register"],
     ["nav.menu.logout", "Wyloguj się", "Log out"],
+    ["nav.menu.languages", "Wybierz język", "Choose language"],
+    ["nav.menu.about", "O nas", "About us"],
+    ["nav.menu.nfc", "Skanuj NFC", "Scan NFC"],
+    ["nfc.scan", "Zeskanuj kartę NFC", "Scan NFC card"],
+    ["nfc.scanning", "Skanowanie...", "Scanning..."],
+    ["nfc.title", "Szybkie skanowanie NFC", "Quick NFC scan"],
+    [
+        "nfc.subtitle",
+        "Przyłóż kartę lub opaskę, aby otworzyć kartę medyczną.",
+        "Hold the card or wristband near your phone to open the record."
+    ],
+    [
+        "nfc.hint_ready",
+        "Gotowy do skanowania - upewnij się, że NFC jest włączone.",
+        "Ready to scan - make sure NFC is enabled."
+    ],
+    [
+        "nfc.hint_scanning",
+        "Przytrzymaj kartę blisko górnej części telefonu.",
+        "Keep the card near the top of the phone."
+    ],
+    ["nfc.unsupported", "Twoja przeglądarka nie obsługuje NFC.", "Your browser does not support NFC."],
+    ["nfc.permission", "Udziel zgody na użycie NFC.", "Please allow access to NFC."],
+    ["nfc.read_error", "Nie udało się odczytać karty NFC.", "Could not read the NFC tag."],
+    ["nfc.no_serial", "Nie znaleziono numeru seryjnego.", "Serial number was not found."],
+    ["nfc.generic", "Nie udało się uruchomić skanowania NFC.", "Could not start NFC scanning."],
     ["button.ok", "OK", "OK"],
     ["button.cancel", "Anuluj", "Cancel"],
     ["button.submit", "zatwierdz", "Submit"],
     ["button.delete", "Usuń", "Delete"],
     ["button.edit", "Edytuj", "Edit"],
     ["button.save", "Zapisz", "Save"],
+    ["button.saving", "Zapisywanie...", "Saving..."],
     ["button.add", "Dodaj", "Add"],
+    ["loading", "Ładowanie...", "Loading..."],
+    ["no_items", "Brak danych", "No items"],
+    ["childrenmode.title", "Tryb dziecięcy", "Children Mode"],
 
     ["form.FistName", "Imię", "First Name"],
     ["form.MiddleName", "Drugie imię", "Middle Name"],
@@ -31,7 +60,7 @@ export const locales: LocaleRow[] = [
     ["medicalcard.bloodtype", "Grupa krwi", "Blood Type"],
 
     ["auth.Login", "Zaloguj się", "Log in"],
-    ["auth.login_title", "Logowanie do Moj LifeLine", "Login to My LifeLine"],
+    ["auth.login_title", "Logowanie do Moj LifeLink", "Login to My LifeLink"],
     ["auth.pesel", "PESEL", "PESEL"],
     ["auth.subtitle", "Zarządzaj swoją kartą medyczną online", "Manage your medical card online"],
     ["auth.login_help", "Jeśli potrzebujesz pomocy z logowaniem, skontaktuj się z pomocą techniczną.", "If you need help logging in, contact IT support."],
@@ -62,7 +91,7 @@ export const locales: LocaleRow[] = [
 
 
     ["medicalcard.title", "Karta Medyczna", "Medical Card"],
-    ["medicalcard.patient_info", "Informacje o Pacjencie", "Parson Information"],
+    ["medicalcard.patient_info", "Informacje o Pacjencie", "Person Information"],
     ["medicalcard.personal_data", "Dane Osobowe", "Personal Data"],
     ["medicalcard.contact_info", "Informacje Kontaktowe", "Contact Information"],
     ["medicalcard.examinations", "Badania", "MedicalCheckup"],
@@ -73,7 +102,7 @@ export const locales: LocaleRow[] = [
     ["medicalcard.medications", "Leki", "Medications"],
     ["medicalcard.vaccinations", "Szczepienia", "Vaccinations"],
     ["medicalcard.no_data", "Brak danych", "No data available"],
-    ["medicalcard.patient_id", "ID Pacjenta", "Parson ID"],
+    ["medicalcard.patient_id", "ID Pacjenta", "Person ID"],
     ["medicalcard.first_name", "Imię", "First Name"],
     ["medicalcard.last_name", "Nazwisko", "Last Name"],
     ["medicalcard.pesel", "PESEL", "PESEL"],
@@ -106,6 +135,11 @@ export const locales: LocaleRow[] = [
     ["medicalcard.error", "Błąd podczas ładowania danych", "Error loading data"],
     ["medicalcard.delete_allergy", "Usuń alergię", "Delete allergy"],
     ["medicalcard.vaccine_type", "Typ Szczepionki", "Vaccine Type"],
+    ["medicalcard.select_vaccine", "Wybierz szczepionkę", "Select vaccine"],
+    ["medicalcard.procedure_code", "Kod Procedury", "Procedure Code"],
+    ["medicalcard.procedure_date", "Data Zabiegu", "Procedure Date"],
+    ["medicalcard.start_date", "Data rozpoczęcia", "Start date"],
+    ["medicalcard.end_date", "Data zakończenia", "End date"],
 
     ["address.address", "Adres", "Address"],
     ["address.city", "Miasto", "City"],

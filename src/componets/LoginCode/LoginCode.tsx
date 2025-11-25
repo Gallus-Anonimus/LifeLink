@@ -192,7 +192,7 @@ const LoginCode = ({ NFCcode, onSuccess }: LoginCodeProps = {} as LoginCodeProps
                                             }}
                                             aria-hidden
                                         >
-                                            {selectedUser ? initials(selectedUser) : "—"}
+                                            {selectedUser ? initials(selectedUser) : "-"}
                                         </div>
                                         <Form.Control
                                             type="text"
