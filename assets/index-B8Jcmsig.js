@@ -20,10 +20,6 @@ Please change the parent <Route path="${Y}"> to <Route path="${Y==="/"?"*":`${Y}
                     50% { background-position: 100% 50%; }
                     100% { background-position: 0% 50%; }
                 }
-                @keyframes bounce {
-                    0%, 100% { transform: translateY(0); }
-                    50% { transform: translateY(-10px); }
-                }
                 .children-card {
                     animation: bounce 2s ease-in-out infinite;
                 }
