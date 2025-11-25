@@ -115,7 +115,7 @@ Dokumentacja API backendu znajduje się w repozytorium: [API.md](https://github.
 
 ## 🇬🇧 English
 
-### 📋 Description
+### Description
 
 **LifeLink** is a modern web application created during the **HackHeros**, designed to simplify communication between patients, caregivers, and medical staff. The application provides quick access to the most important medical information, multilingual support, and a mobile-friendly interface.
 
