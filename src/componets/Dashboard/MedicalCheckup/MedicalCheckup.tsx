@@ -30,7 +30,7 @@ export const MedicalCheckup = () => {
             if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
             const data = await res.json();
             setItems(data.items ?? []);
-        } catch (err: any) {
+        } catch (err) {
             console.error("Failed to fetch", err);
             setError("Failed to load examinations");
         } finally {

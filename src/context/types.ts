@@ -104,15 +104,20 @@ export interface MedicalCheckupType {
     date: string;
 }
 
-export interface MedicalCheckupProps {
-    medicalCheckup: MedicalCheckup[];
-}
-
 export interface Procedure {
     procedureId: number;
     cptCode: string;
     procedureDescription: string;
     date: string;
+    procedureDate?: string;
+}
+
+export interface ProcedureApiResponse {
+    procedureId: number;
+    cptCode: string;
+    procedureDescription: string;
+    date?: string;
+    procedureDate?: string;
 }
 
 export interface ProceduresEditProps {

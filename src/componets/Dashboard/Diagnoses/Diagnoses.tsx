@@ -56,7 +56,6 @@ export const Diagnoses = ({ diagnoses }: DiagnosesEditProps) => {
             const res = await fetchApi("GET", "/diagnoses/list");
             if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
             const data = await res.json();
-            console.log(data.items);
             setAllergies(data.items || []);
         } catch (err) {
             console.error("Failed to fetch diagnoses", err);

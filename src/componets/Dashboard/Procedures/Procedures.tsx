@@ -3,14 +3,14 @@ import { useLanguage } from "../../../context/LanguageContext.tsx";
 import { t } from "../../../assets/languages.ts";
 import { IconScissors, IconPlus, IconTrash } from "@tabler/icons-react";
 import {changeDate, fetchApi, reverseDate} from "../../../context/utils.ts";
-import type {Procedure, ProceduresEditProps} from "../../../context/types.ts";
+import type {Procedure, ProceduresEditProps, ProcedureApiResponse} from "../../../context/types.ts";
 
 
 export const Procedures = ({ procedures }: ProceduresEditProps) => {
     const { lang } = useLanguage();
     const mappedProcedures = procedures.map(proc => ({
         ...proc,
-        date: (proc as any).procedureDate || proc.date || ''
+        date: proc.procedureDate || proc.date || ''
     }));
     const [proceduresList, setProceduresList] = useState<Procedure[]>(mappedProcedures);
     const [isAdding, setIsAdding] = useState(false);
@@ -42,12 +42,13 @@ export const Procedures = ({ procedures }: ProceduresEditProps) => {
                 headers: { "Content-Type": "application/json" },
             });
             if (res.ok) {
-                const data = await res.json();
+                const data = await res.json() as ProcedureApiResponse;
                 const mappedData: Procedure = {
                     procedureId: data.procedureId,
                     cptCode: data.cptCode,
                     procedureDescription: data.procedureDescription,
-                    date: data.procedureDate || data.date || ''
+                    date: data.procedureDate || data.date || '',
+                    procedureDate: data.procedureDate
                 };
                 setProceduresList(prev => [...prev, mappedData]);
                 setNewProcedure({ cptCode: '', procedureDescription: '', date: '' });
@@ -147,7 +148,7 @@ export const Procedures = ({ procedures }: ProceduresEditProps) => {
                         </div>
                     )}
                     {proceduresList.map((proc) => {
-                        const dateValue = (proc as any).procedureDate || proc.date || '';
+                        const dateValue = proc.procedureDate || proc.date || '';
                         return (
                         <div key={proc.procedureId} className="border rounded p-3 mb-3" style={{ backgroundColor: "#e6fcf5" }}>
                             <div className="mb-2">

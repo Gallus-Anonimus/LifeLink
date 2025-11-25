@@ -12,6 +12,7 @@ import {Vaccinations} from "./Vaccinations/Vaccinations.tsx";
 import {MedicalCheckup} from "./MedicalCheckup/MedicalCheckup.tsx";
 import {Diagnoses} from "./Diagnoses/Diagnoses.tsx";
 import {Procedures} from "./Procedures/Procedures.tsx";
+import {NfcManagement} from "./NfcManagement/NfcManagement.tsx";
 import type {FetcheData} from "../../context/types.ts";
 
 
@@ -29,7 +30,6 @@ export const Dashboard = () => {
             }
             const data = await res.json();
             setfetchedData(data);
-            console.log(data);
         } catch (err) {
             console.error("Failed to fetch patient data:", err);
             setfetchedData(null);
@@ -85,7 +85,6 @@ export const Dashboard = () => {
         );
     }
 
-    console.log(fetchedData);
     return (
         <div className="container-fluid px-4 py-4" style={{ backgroundColor: "#f5f7fa", minHeight: "100vh" }}>
             <div className="row mb-4">
@@ -99,6 +98,10 @@ export const Dashboard = () => {
             </div>
 
             <PatientInfo patient={fetchedData.patient} onDataSaved={fetchPatientData} />
+
+            <div className="row g-4 mb-4">
+                <NfcManagement />
+            </div>
 
             <div className="row g-4">
                 <Allergies allergies={fetchedData.card?.allergies} />

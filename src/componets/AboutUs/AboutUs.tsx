@@ -368,7 +368,6 @@ export const AboutUs = () => {
                                             </Col>
                                         </Row>
 
-                                        {/* New section: Team */}
                                         <Row className="mt-4">
                                             <Col xs={12}>
                                                 <h3 className="h5 fw-semibold mb-3" style={{color: "#2c3e50"}}>
@@ -834,7 +833,6 @@ export const AboutUs = () => {
                                         </Col>
                                     </Row>
 
-                                    {/* New section: Team */}
                                     <Row className="mt-4">
                                         <Col xs={12}>
                                             <h3 className="h5 fw-semibold mb-3" style={{ color: "#2c3e50" }}>
@@ -961,6 +959,7 @@ export const AboutUs = () => {
         </div>
     );
 };
+
 
 
 

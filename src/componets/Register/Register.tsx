@@ -245,7 +245,6 @@ export default function Register(): React.ReactElement {
       <div className="container" style={{ maxWidth: 900 }}>
         <Card className="shadow-sm border-0">
           <Card.Body className="p-4 p-md-5">
-            {/* Header */}
             <Row className="align-items-center mb-4">
               <Col xs="auto">
                 <div
@@ -448,7 +447,6 @@ export default function Register(): React.ReactElement {
                 </Row>
               </div>
 
-              {/* Address Section */}
               <div className="mb-4">
                 <div className="d-flex align-items-center gap-2 mb-3">
                   <IconMapPin size={20} className="text-primary" />

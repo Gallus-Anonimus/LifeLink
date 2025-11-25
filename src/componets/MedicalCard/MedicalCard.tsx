@@ -238,7 +238,6 @@ const MedicalCard = () => {
     }
 
     const { pacjent, badania, rozpoznania, zabiegi, alergie, choroby_przewlekle, leki, szczepienia } = data;
-    console.log(data)
     return (
         <div className="container mt-4">
             <h1 className="mb-4">{t("medicalcard.title", lang)}</h1>

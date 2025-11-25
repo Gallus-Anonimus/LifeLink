@@ -39,7 +39,6 @@ export const Medications = ({ medications: initialMedications = [] }: Medication
             startDate: changeDate(newStartDate) || undefined,
             endDate: changeDate(newEndDate) || null
         };
-        console.log(payload);
         try {
             const res = await fetchApi("POST", "/medicines/add", {
                 body: JSON.stringify(payload),

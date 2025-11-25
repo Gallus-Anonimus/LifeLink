@@ -24,7 +24,6 @@ export const ChronicDiseases = ({ chronicdiseases }: ChronicDiseasesProps) => {
             diagnosisDate: changeDate(newDate) || undefined,
             notes: newDesc.trim(),
         };
-        console.log(payload);
         try {
             const res = await fetchApi("POST", "/diseases/add", {
                 body: JSON.stringify(payload),

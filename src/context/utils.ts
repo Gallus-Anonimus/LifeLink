@@ -1,7 +1,8 @@
 import {baseURL} from "../assets/const.ts";
 
 export  const fetchApi = async (method: string, path: string, options: RequestInit = {}) => {
-    return fetch(`${baseURL}${path}`, {
+    const url = `${baseURL}${path}`;
+    const config: RequestInit = {
         method: method,
         credentials: 'include',
         headers: {
@@ -9,7 +10,8 @@ export  const fetchApi = async (method: string, path: string, options: RequestIn
             ...options.headers
         },
         ...options,
-    });
+    };
+    return fetch(url, config);
 }
 
 export const fetchSesion = async (setLoggedIn:any) => {
@@ -18,7 +20,6 @@ export const fetchSesion = async (setLoggedIn:any) => {
     }).then(
         data => {
             setLoggedIn(data.active);
-            console.log(data)
         }
     )
 }
@@ -48,6 +49,33 @@ export const reverseDate = (dateString: string): string => {
     }
 
     return dateString;
+}
+
+export const registerNfcTag = async (nfcTagUid: string, nfcCode: string) => {
+    const url = `${baseURL}/auth/nfc/register`;
+    try {
+        const response = await fetchApi("PATCH", "/auth/nfc/register", {
+            body: JSON.stringify({
+                nfcTagUid,
+                nfcCode
+            })
+        });
+        return response;
+    } catch (error) {
+        console.error("Failed to register NFC tag:", error);
+        console.error("Request URL:", url);
+        throw error;
+    }
+}
+
+export const deregisterNfcTag = async () => {
+    try {
+        const response = await fetchApi("PATCH", "/auth/nfc/deregister", {});
+        return response;
+    } catch (error) {
+        console.error("Failed to deregister NFC tag:", error);
+        throw error;
+    }
 }
 
 
