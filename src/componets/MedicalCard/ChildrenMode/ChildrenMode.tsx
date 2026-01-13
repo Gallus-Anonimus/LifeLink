@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import LoginCode from "../../LoginCode/LoginCode.tsx";
 import { fetchApi } from "../../../context/utils.ts";
 import type { FetcheData, PatientInfoType } from "../../../context/types.ts";
+import { decodeEmergencyData, type EmergencyData } from "../../../utils/hashData.ts";
 
 const ChildrenMode = () => {
     const { lang } = useLanguage();
@@ -12,23 +13,96 @@ const ChildrenMode = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [showLoginCode, setShowLoginCode] = useState(false);
+    const [isOfflineMode, setIsOfflineMode] = useState(false);
     const { NFC } = useParams<{ NFC: string }>();
 
-    const fetchPatientData = useCallback(async () => {
+    // Convert EmergencyData to minimal PatientInfoType for children mode
+    const emergencyDataToPatient = (emergencyData: EmergencyData): PatientInfoType | null => {
+        const [firstName, ...lastNameParts] = emergencyData.n.split(' ');
+        const lastName = lastNameParts.join(' ') || '';
+        
+        return {
+            person: {
+                personId: 0,
+                firstName: firstName || '',
+                lastName: lastName,
+                phoneNumber: '',
+                gender: 'MALE',
+                address: {
+                    street: '',
+                    buildingNumber: '',
+                    city: '',
+                    postalCode: '',
+                    country: '',
+                },
+            },
+            contactPerson: emergencyData.e ? {
+                personId: 0,
+                firstName: '',
+                lastName: '',
+                phoneNumber: emergencyData.e,
+                gender: 'MALE',
+                address: {
+                    street: '',
+                    buildingNumber: '',
+                    city: '',
+                    postalCode: '',
+                    country: '',
+                },
+            } : null,
+            pesel: '',
+            bloodType: emergencyData.b as any || 'O+',
+            email: '',
+            dateOfBirth: '',
+        };
+    };
+
+    // Check for hash fragment data first (offline mode)
+    useEffect(() => {
+        const hash = window.location.hash.slice(1);
+        if (hash) {
+            const emergencyData = decodeEmergencyData(hash);
+            if (emergencyData) {
+                const hashPatient = emergencyDataToPatient(emergencyData);
+                if (hashPatient) {
+                    setPatient(hashPatient);
+                    setIsOfflineMode(true);
+                    setLoading(false);
+                    
+                    // Optionally fetch fresh data in background if online
+                    const jwt = localStorage.getItem('jwt');
+                    if (jwt && navigator.onLine) {
+                        fetchPatientData(true); // Silent background fetch
+                    }
+                    return;
+                }
+            }
+        }
+        // No hash data, proceed with normal API fetch
+        fetchPatientData();
+    }, []);
+
+    const fetchPatientData = useCallback(async (silent = false) => {
         try {
-            setLoading(true);
-            setError(null);
+            if (!silent) {
+                setLoading(true);
+                setError(null);
+            }
 
             const jwt = localStorage.getItem('jwt');
             
             if (!jwt) {
                 if (!NFC) {
-                    setError("NFC code is required");
-                    setLoading(false);
+                    if (!silent) {
+                        setError("NFC code is required");
+                        setLoading(false);
+                    }
                     return;
                 }
-                setShowLoginCode(true);
-                setLoading(false);
+                if (!silent) {
+                    setShowLoginCode(true);
+                    setLoading(false);
+                }
                 return;
             }
 
@@ -43,30 +117,41 @@ const ChildrenMode = () => {
                 if (response.status === 401 || response.status === 403){
                     localStorage.removeItem('jwt');
                     if (NFC) {
-                        setShowLoginCode(true);
+                        if (!silent) {
+                            setShowLoginCode(true);
+                            setLoading(false);
+                        }
                     } else {
-                        setError(errorData.details || "Authentication required");
+                        if (!silent) {
+                            setError(errorData.details || "Authentication required");
+                            setLoading(false);
+                        }
                     }
-                    setLoading(false);
                     return;
                 }
                 
-                throw new Error(errorData.details || errorData.message || `Failed to fetch: ${response.status}`);
+                if (!silent) {
+                    throw new Error(errorData.details || errorData.message || `Failed to fetch: ${response.status}`);
+                }
+                return;
             }
 
             const apiData: Partial<FetcheData> = await response.json();
             setPatient(apiData.patient || null);
-            setShowLoginCode(false);
+            setIsOfflineMode(false);
+            if (!silent) {
+                setShowLoginCode(false);
+            }
         } catch (err) {
-            setError(err instanceof Error ? err.message : t("medicalcard.error", lang));
+            if (!silent) {
+                setError(err instanceof Error ? err.message : t("medicalcard.error", lang));
+            }
         } finally {
-            setLoading(false);
+            if (!silent) {
+                setLoading(false);
+            }
         }
     }, [NFC, lang]);
-
-    useEffect(() => {
-        fetchPatientData();
-    }, [fetchPatientData]);
 
     const handleLoginSuccess = () => {
         setShowLoginCode(false);
@@ -184,17 +269,27 @@ const ChildrenMode = () => {
                                 >
                                     👶
                                 </div>
-                                <h1 
-                                    style={{
-                                        color: "#FF6B9D",
-                                        fontWeight: "bold",
-                                        fontSize: "2.5rem",
-                                        textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
-                                        marginBottom: "30px"
-                                    }}
-                                >
-                                    {t("childrenmode.title", lang)}
-                                </h1>
+                                <div className="d-flex justify-content-center align-items-center gap-2 mb-3">
+                                    <h1 
+                                        style={{
+                                            color: "#FF6B9D",
+                                            fontWeight: "bold",
+                                            fontSize: "2.5rem",
+                                            textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
+                                            marginBottom: "0"
+                                        }}
+                                    >
+                                        {t("childrenmode.title", lang)}
+                                    </h1>
+                                    {isOfflineMode && (
+                                        <span className="badge bg-warning text-dark" title="Displaying cached offline data" style={{ fontSize: "0.75rem" }}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" className="bi bi-wifi-off me-1" viewBox="0 0 16 16">
+                                                <path d="M10.706 3.294A12.6 12.6 0 0 0 8 3C5.259 3 2.723 3.882.663 5.379a.5.5 0 1 0 .707.707A11.5 11.5 0 0 1 8 4c.63 0 1.249.05 1.852.148l.854-.854zM8 6c-1.905 0-3.68.56-5.166 1.526a.5.5 0 0 0 .708.708C4.74 8.096 6.32 7.5 8 7.5c.715 0 1.418.09 2.096.26l.771-.772A7.5 7.5 0 0 0 8 6zm2.596 1.404c.18.18.35.38.49.59l.723-.723a7.5 7.5 0 0 0-1.98-.38l-.232.232zM8 9c.5 0 .98.06 1.444.16l-.415.415c-.562.562-1.15.99-1.78 1.344a.5.5 0 1 0 .5.866 6.4 6.4 0 0 0 2.56-1.77l.723-.723A6.5 6.5 0 0 0 8 9zm3.5 1.5c.195 0 .39.03.58.07l-.766.766a5.5 5.5 0 0 0-1.65.33.5.5 0 0 0 .5.866 4.5 4.5 0 0 1 1.23-.531zm-1.5 1.5a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm-9-11a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zM13 2.5a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 .5-.5z"/>
+                                            </svg>
+                                            Offline
+                                        </span>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="mb-4">
@@ -300,6 +395,16 @@ const ChildrenMode = () => {
 };
 
 export default ChildrenMode;
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { useLanguage } from "../../context/LanguageContext.tsx";
 import { t } from "../../assets/languages.ts";
 import { useState, useEffect, useCallback } from "react";
-import type { MedicalCardData, Pacjent } from "./types.ts";
+import type { MedicalCardData, Pacjent, Alergia, ChorobaPrzewlekla, Lek } from "./types.ts";
 import PatientInfo from "./PatientInfo/PatientInfo.tsx";
 import AllergiesList from "./AllergiesList/AllergiesList.tsx";
 import ChronicDiseasesList from "./ChronicDiseasesList/ChronicDiseasesList.tsx";

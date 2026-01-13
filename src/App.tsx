@@ -8,6 +8,7 @@ import {Login} from "./componets/Login/Login.tsx";
 import {Dashboard} from "./componets/Dashboard/Dashboard.tsx";
 import Register from "./componets/Register/Register.tsx";
 import {AboutUs} from "./componets/AboutUs/AboutUs.tsx";
+import {MedicationTracker} from "./componets/MedicationTracker/MedicationTracker.tsx";
 
 
 function App() {
@@ -36,11 +37,14 @@ function App() {
                 <Routes>
                     <Route path="login" element={<Login />} />
                     <Route path="/" element={<Login />} />
+                    <Route path="/card" element={<MedicalCard />} />
                     <Route path="/card/:NFC" element={<MedicalCard />} />
+                    <Route path="/card/children" element={<ChildrenMode />} />
                     <Route path="/card/:NFC/children" element={<ChildrenMode />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/about-us" element={<AboutUs />} />
+                    <Route path="/medication-tracker" element={<MedicationTracker />} />
                 </Routes>
             </div>
         </div>

@@ -150,3 +150,37 @@ export interface MedicalCheckup {
 export interface MedicalCheckupProps {
     medicalcheckups: MedicalCheckup[];
 }
+
+// Medication Tracker Types
+export interface MedicationSchedule {
+    scheduleId: number;
+    medicineId: number;
+    medicineName: string;
+    dosage: string;
+    scheduledTime: string; // HH:mm format
+    days: string[]; // e.g., ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+    notes?: string | null;
+    isActive: boolean;
+}
+
+export interface MedicationIntake {
+    intakeId: number;
+    scheduleId: number;
+    medicineName: string;
+    dosage: string;
+    scheduledTime: string;
+    takenAt?: string | null; // ISO date-time if taken
+    status: "PENDING" | "TAKEN" | "MISSED" | "SKIPPED";
+    date: string; // ISO date
+}
+
+export interface MedicationScheduleCreate {
+    medicineId: number;
+    scheduledTime: string;
+    days: string[];
+    notes?: string;
+}
+
+export interface TodayMedicationsResponse {
+    items: MedicationIntake[];
+}

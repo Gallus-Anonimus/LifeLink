@@ -6,3 +6,7 @@ export default defineConfig(({ command }) => ({
   plugins: [react(), mkcert()],
   base: command === 'serve' ? '/' : '/LifeLink/',
 }))
+
+
+
+

@@ -1,16 +1,20 @@
 import { useLanguage } from "../../../context/LanguageContext.tsx";
 import { t } from "../../../assets/languages.ts";
-import { IconNfc, IconTrash, IconScan } from "@tabler/icons-react";
+import { IconNfc, IconTrash, IconScan, IconDeviceFloppy, IconLink, IconCopy, IconExternalLink } from "@tabler/icons-react";
 import { useState, useRef, useEffect, type FormEvent } from "react";
-import { registerNfcTag, deregisterNfcTag } from "../../../context/utils.ts";
+import { registerNfcTag, deregisterNfcTag, fetchApi } from "../../../context/utils.ts";
+import { extractEmergencyData, buildSmartPosterUrl } from "../../../utils/hashData.ts";
+import type { FetcheData } from "../../../context/types.ts";
+import type { MedicalCardData } from "../../MedicalCard/types.ts";
 
 type NfcWindow = Window &
     typeof globalThis & {
         NDEFReader?: {
             new (): {
                 scan: (options?: { signal?: AbortSignal }) => Promise<void>;
+                write: (message: { records: Array<{ recordType: string; data: string }> }) => Promise<void>;
                 addEventListener: (
-                    type: "reading" | "readingerror",
+                    type: "reading" | "readingerror" | "write" | "writeerror",
                     listener: (event: Event) => void,
                     options?: AddEventListenerOptions
                 ) => void;
@@ -29,6 +33,9 @@ export const NfcManagement = () => {
     const [isRegistering, setIsRegistering] = useState(false);
     const [isDeregistering, setIsDeregistering] = useState(false);
     const [isScanning, setIsScanning] = useState(false);
+    const [isWriting, setIsWriting] = useState(false);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
     const [message, setMessage] = useState<string | null>(null);
     const [messageType, setMessageType] = useState<"success" | "error" | null>(null);
     const [, setIsRegistered] = useState<boolean | null>(null);
@@ -198,6 +205,248 @@ export const NfcManagement = () => {
         }
     };
 
+    const handleWriteTag = async () => {
+        const { NDEFReader } = window as NfcWindow;
+
+        if (!NDEFReader) {
+            showMessage(t("nfc.unsupported", lang), "error");
+            return;
+        }
+
+        setIsWriting(true);
+        setMessage(null);
+
+        try {
+            // Fetch current patient data
+            const jwt = localStorage.getItem('jwt');
+            if (!jwt) {
+                showMessage(t("nfc.write.error_auth", lang), "error");
+                setIsWriting(false);
+                return;
+            }
+
+            const response = await fetchApi("GET", "/patients/card", {
+                headers: {
+                    'Authorization': `Bearer ${jwt}`
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                showMessage(errorData.details || errorData.message || t("nfc.write.error_fetch", lang), "error");
+                setIsWriting(false);
+                return;
+            }
+
+            const apiData: Partial<FetcheData> = await response.json();
+            
+            // Transform to MedicalCardData format
+            const transformMedicalCardData = (data: Partial<FetcheData>): MedicalCardData => {
+                const patient = data.patient;
+                const card = data.card;
+                
+                const pacjent = patient && patient.person ? {
+                    id_pacjenta: patient.person.personId ?? 0,
+                    imie: patient.person.firstName ?? "",
+                    nazwisko: patient.person.lastName ?? "",
+                    pesel: patient.pesel ?? "",
+                    data_urodzenia: patient.dateOfBirth ?? "",
+                    telefon: patient.person.phoneNumber ?? "",
+                    adres: "",
+                    osoba_kontaktowa: patient.contactPerson 
+                        ? `${patient.contactPerson.firstName} ${patient.contactPerson.lastName}`.trim()
+                        : "",
+                    telefon_kontaktowy: patient.contactPerson?.phoneNumber ?? "",
+                } : null;
+
+                return {
+                    pacjent,
+                    alergie: (card?.allergies ?? []).map(a => ({
+                        id_alergii: a.allergyId,
+                        id_pacjenta: pacjent?.id_pacjenta ?? 0,
+                        nazwa: a.name,
+                        opis: a.description ?? "",
+                    })),
+                    choroby_przewlekle: (card?.chronicDiseases ?? []).map(c => ({
+                        id_choroby: c.diseaseId,
+                        id_pacjenta: pacjent?.id_pacjenta ?? 0,
+                        nazwa: c.name,
+                        data_rozpoznania: c.diagnosisDate ?? "",
+                        uwagi: c.notes ?? "",
+                    })),
+                    leki: (card?.medicines ?? []).map(m => ({
+                        id_leku: m.medicineId,
+                        id_pacjenta: pacjent?.id_pacjenta ?? 0,
+                        nazwa: m.name,
+                        dawka: m.dosage ?? "",
+                        czestotliwosc: m.frequency ?? "",
+                        od_kiedy: m.startDate ?? "",
+                        do_kiedy: m.endDate ?? null,
+                    })),
+                    szczepienia: [],
+                    badania: [],
+                    rozpoznania: [],
+                    zabiegi: [],
+                };
+            };
+
+            const medicalCardData = transformMedicalCardData(apiData);
+            
+            // Extract emergency data
+            const emergencyData = extractEmergencyData(
+                medicalCardData.pacjent,
+                apiData.patient?.bloodType || '',
+                medicalCardData.alergie,
+                medicalCardData.choroby_przewlekle,
+                medicalCardData.leki
+            );
+
+            // Build Smart-Poster URL
+            const smartPosterUrl = buildSmartPosterUrl(emergencyData);
+
+            // Write to NFC tag
+            const reader = new NDEFReader();
+            
+            await reader.write({
+                records: [{
+                    recordType: "url",
+                    data: smartPosterUrl
+                }]
+            });
+
+            showMessage(t("nfc.write.success", lang), "success");
+        } catch (error) {
+            const err = error as DOMException;
+            if (err?.name === "NotAllowedError") {
+                showMessage(t("nfc.permission", lang), "error");
+            } else if (err?.name === "NotSupportedError") {
+                showMessage(t("nfc.write.error_not_supported", lang), "error");
+            } else {
+                showMessage(err?.message || t("nfc.write.error_generic", lang), "error");
+            }
+            console.error("NFC write error:", error);
+        } finally {
+            setIsWriting(false);
+        }
+    };
+
+    const handleGenerateUrl = async () => {
+        setIsGenerating(true);
+        setGeneratedUrl(null);
+        setMessage(null);
+
+        try {
+            const jwt = localStorage.getItem('jwt');
+            if (!jwt) {
+                showMessage(t("nfc.write.error_auth", lang), "error");
+                setIsGenerating(false);
+                return;
+            }
+
+            const response = await fetchApi("GET", "/patients/card", {
+                headers: {
+                    'Authorization': `Bearer ${jwt}`
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                showMessage(errorData.details || errorData.message || t("nfc.write.error_fetch", lang), "error");
+                setIsGenerating(false);
+                return;
+            }
+
+            const apiData: Partial<FetcheData> = await response.json();
+            
+            // Transform to MedicalCardData format
+            const transformMedicalCardData = (data: Partial<FetcheData>): MedicalCardData => {
+                const patient = data.patient;
+                const card = data.card;
+                
+                const pacjent = patient && patient.person ? {
+                    id_pacjenta: patient.person.personId ?? 0,
+                    imie: patient.person.firstName ?? "",
+                    nazwisko: patient.person.lastName ?? "",
+                    pesel: patient.pesel ?? "",
+                    data_urodzenia: patient.dateOfBirth ?? "",
+                    telefon: patient.person.phoneNumber ?? "",
+                    adres: "",
+                    osoba_kontaktowa: patient.contactPerson 
+                        ? `${patient.contactPerson.firstName} ${patient.contactPerson.lastName}`.trim()
+                        : "",
+                    telefon_kontaktowy: patient.contactPerson?.phoneNumber ?? "",
+                } : null;
+
+                return {
+                    pacjent,
+                    alergie: (card?.allergies ?? []).map(a => ({
+                        id_alergii: a.allergyId,
+                        id_pacjenta: pacjent?.id_pacjenta ?? 0,
+                        nazwa: a.name,
+                        opis: a.description ?? "",
+                    })),
+                    choroby_przewlekle: (card?.chronicDiseases ?? []).map(c => ({
+                        id_choroby: c.diseaseId,
+                        id_pacjenta: pacjent?.id_pacjenta ?? 0,
+                        nazwa: c.name,
+                        data_rozpoznania: c.diagnosisDate ?? "",
+                        uwagi: c.notes ?? "",
+                    })),
+                    leki: (card?.medicines ?? []).map(m => ({
+                        id_leku: m.medicineId,
+                        id_pacjenta: pacjent?.id_pacjenta ?? 0,
+                        nazwa: m.name,
+                        dawka: m.dosage ?? "",
+                        czestotliwosc: m.frequency ?? "",
+                        od_kiedy: m.startDate ?? "",
+                        do_kiedy: m.endDate ?? null,
+                    })),
+                    szczepienia: [],
+                    badania: [],
+                    rozpoznania: [],
+                    zabiegi: [],
+                };
+            };
+
+            const medicalCardData = transformMedicalCardData(apiData);
+            
+            // Extract emergency data
+            const emergencyData = extractEmergencyData(
+                medicalCardData.pacjent,
+                apiData.patient?.bloodType || '',
+                medicalCardData.alergie,
+                medicalCardData.choroby_przewlekle,
+                medicalCardData.leki
+            );
+
+            // Build Smart-Poster URL
+            const smartPosterUrl = buildSmartPosterUrl(emergencyData);
+            setGeneratedUrl(smartPosterUrl);
+            showMessage(t("nfc.generate.success", lang), "success");
+        } catch (error) {
+            const err = error as Error;
+            showMessage(err?.message || t("nfc.generate.error_generic", lang), "error");
+            console.error("URL generation error:", error);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    const handleCopyUrl = async () => {
+        if (!generatedUrl) return;
+        try {
+            await navigator.clipboard.writeText(generatedUrl);
+            showMessage(t("nfc.generate.copied", lang), "success");
+        } catch {
+            showMessage(t("nfc.generate.copy_error", lang), "error");
+        }
+    };
+
+    const handleOpenUrl = () => {
+        if (!generatedUrl) return;
+        window.open(generatedUrl, '_blank');
+    };
+
     return (
         <div className="col-lg-6">
             <div
@@ -302,6 +551,90 @@ export const NfcManagement = () => {
                                 )}
                             </button>
                         </form>
+                    </div>
+
+                    <hr className="my-4" />
+
+                    <div className="mb-4">
+                        <h6 className="mb-3">{t("nfc.management.write_title", lang)}</h6>
+                        <p className="text-muted small mb-3">
+                            {t("nfc.write.description", lang)}
+                        </p>
+                        <button
+                            type="button"
+                            className="btn btn-success w-100 d-flex align-items-center justify-content-center"
+                            onClick={handleWriteTag}
+                            disabled={isWriting}
+                        >
+                            {isWriting ? (
+                                <>
+                                    <span className="spinner-border spinner-border-sm me-2" />
+                                    {t("nfc.write.writing", lang)}
+                                </>
+                            ) : (
+                                <>
+                                    <IconDeviceFloppy size={18} className="me-2" />
+                                    {t("nfc.write.write", lang)}
+                                </>
+                            )}
+                        </button>
+                    </div>
+
+                    <hr className="my-4" />
+
+                    <div className="mb-4">
+                        <h6 className="mb-3">{t("nfc.generate.title", lang)}</h6>
+                        <p className="text-muted small mb-3">
+                            {t("nfc.generate.description", lang)}
+                        </p>
+                        <button
+                            type="button"
+                            className="btn btn-info w-100 d-flex align-items-center justify-content-center text-white"
+                            onClick={handleGenerateUrl}
+                            disabled={isGenerating}
+                        >
+                            {isGenerating ? (
+                                <>
+                                    <span className="spinner-border spinner-border-sm me-2" />
+                                    {t("nfc.generate.generating", lang)}
+                                </>
+                            ) : (
+                                <>
+                                    <IconLink size={18} className="me-2" />
+                                    {t("nfc.generate.generate", lang)}
+                                </>
+                            )}
+                        </button>
+
+                        {generatedUrl && (
+                            <div className="mt-3">
+                                <div className="input-group">
+                                    <input
+                                        type="text"
+                                        className="form-control form-control-sm"
+                                        value={generatedUrl}
+                                        readOnly
+                                        style={{ fontSize: "0.75rem" }}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="btn btn-outline-secondary btn-sm"
+                                        onClick={handleCopyUrl}
+                                        title={t("nfc.generate.copy", lang)}
+                                    >
+                                        <IconCopy size={16} />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="btn btn-outline-primary btn-sm"
+                                        onClick={handleOpenUrl}
+                                        title={t("nfc.generate.open", lang)}
+                                    >
+                                        <IconExternalLink size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <hr className="my-4" />

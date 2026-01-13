@@ -6,6 +6,7 @@ import {
     IconLogout,
     IconUserPlus,
     IconNfc,
+    IconPill,
 } from "@tabler/icons-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useLanguage } from "../../../context/LanguageContext.tsx";
@@ -58,6 +59,15 @@ const UserMenu = ({ onNfcClick }: UserMenuProps) => {
             action: () => {
                 setOpen(false);
                 navigate("/dashboard");
+            },
+        },
+        {
+            key: "medication-tracker",
+            label: t("nav.menu.medication_tracker", lang),
+            icon: IconPill,
+            action: () => {
+                setOpen(false);
+                navigate("/medication-tracker");
             },
         },
         {
