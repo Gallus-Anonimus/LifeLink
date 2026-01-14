@@ -28,6 +28,7 @@ const ChildrenMode = () => {
                 lastName: lastName,
                 phoneNumber: '',
                 gender: 'MALE',
+                email: '',
                 address: {
                     street: '',
                     buildingNumber: '',
@@ -42,6 +43,7 @@ const ChildrenMode = () => {
                 lastName: '',
                 phoneNumber: emergencyData.e,
                 gender: 'MALE',
+                email: '',
                 address: {
                     street: '',
                     buildingNumber: '',

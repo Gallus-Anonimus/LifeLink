@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { useLanguage } from "../../context/LanguageContext.tsx";
 import { t } from "../../assets/languages.ts";
 import { useState, useEffect, useCallback } from "react";
-import type { MedicalCardData, Pacjent, Alergia, ChorobaPrzewlekla, Lek } from "./types.ts";
+import type { MedicalCardData, Pacjent } from "./types.ts";
 import PatientInfo from "./PatientInfo/PatientInfo.tsx";
 import AllergiesList from "./AllergiesList/AllergiesList.tsx";
 import ChronicDiseasesList from "./ChronicDiseasesList/ChronicDiseasesList.tsx";
@@ -78,7 +78,7 @@ const transformMedicalCardData = (apiData: Partial<FetcheData>): MedicalCardData
         (items ?? []).map((med) => ({
             id_leku: med.medicineId,
             id_pacjenta: patientId,
-            nazwa: med.name,
+            nazwa: med.name ?? med.medicineName ?? "",
             dawka: med.dosage ?? "",
             czestotliwosc: med.frequency ?? "",
             od_kiedy: med.startDate ?? "",

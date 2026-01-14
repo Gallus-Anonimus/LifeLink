@@ -57,6 +57,11 @@ export interface Medication {
     medicineId: number,
     medicineName: string,
     notes?: string | null,
+    name?: string,
+    dosage?: string | null,
+    frequency?: string | null,
+    startDate?: string | null,
+    endDate?: string | null,
 }
 
 export interface MedicationsProps {

@@ -279,7 +279,7 @@ export const NfcManagement = () => {
                     leki: (card?.medicines ?? []).map(m => ({
                         id_leku: m.medicineId,
                         id_pacjenta: pacjent?.id_pacjenta ?? 0,
-                        nazwa: m.name,
+                        nazwa: m.name ?? m.medicineName ?? "",
                         dawka: m.dosage ?? "",
                         czestotliwosc: m.frequency ?? "",
                         od_kiedy: m.startDate ?? "",
@@ -398,7 +398,7 @@ export const NfcManagement = () => {
                     leki: (card?.medicines ?? []).map(m => ({
                         id_leku: m.medicineId,
                         id_pacjenta: pacjent?.id_pacjenta ?? 0,
-                        nazwa: m.name,
+                        nazwa: m.name ?? m.medicineName ?? "",
                         dawka: m.dosage ?? "",
                         czestotliwosc: m.frequency ?? "",
                         od_kiedy: m.startDate ?? "",
