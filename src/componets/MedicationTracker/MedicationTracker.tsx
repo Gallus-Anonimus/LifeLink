@@ -20,62 +20,6 @@ import type {
     MedicationSchedule,
 } from "../../context/types.ts";
 
-// ============ MOCK DATA - Remove when backend is ready ============
-const USE_MOCK_DATA = true;
-
-const MOCK_MEDICATIONS: Medication[] = [
-    { medicineId: 1, name: "Metformin", dosage: "500mg", frequency: "2x daily", startDate: "2025-01-01", endDate: null },
-    { medicineId: 2, name: "Lisinopril", dosage: "10mg", frequency: "1x daily", startDate: "2025-01-01", endDate: null },
-    { medicineId: 3, name: "Atorvastatin", dosage: "20mg", frequency: "1x daily", startDate: "2025-01-01", endDate: null },
-    { medicineId: 4, name: "Omeprazole", dosage: "20mg", frequency: "1x daily", startDate: "2025-01-01", endDate: null },
-    { medicineId: 5, name: "Vitamin D3", dosage: "1000 IU", frequency: "1x daily", startDate: "2025-01-01", endDate: null },
-];
-
-const MOCK_SCHEDULES: MedicationSchedule[] = [
-    { scheduleId: 1, medicineId: 1, medicineName: "Metformin", dosage: "500mg", scheduledTime: "08:00", days: ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"], notes: "Take with breakfast", isActive: true },
-    { scheduleId: 2, medicineId: 1, medicineName: "Metformin", dosage: "500mg", scheduledTime: "20:00", days: ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"], notes: "Take with dinner", isActive: true },
-    { scheduleId: 3, medicineId: 2, medicineName: "Lisinopril", dosage: "10mg", scheduledTime: "09:00", days: ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"], notes: null, isActive: true },
-    { scheduleId: 4, medicineId: 3, medicineName: "Atorvastatin", dosage: "20mg", scheduledTime: "21:00", days: ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"], notes: "Take before bed", isActive: true },
-    { scheduleId: 5, medicineId: 5, medicineName: "Vitamin D3", dosage: "1000 IU", scheduledTime: "12:00", days: ["MONDAY", "WEDNESDAY", "FRIDAY"], notes: null, isActive: true },
-];
-
-const generateMockIntakes = (): MedicationIntake[] => {
-    const now = new Date();
-    const currentHour = now.getHours();
-    const today = now.toISOString().split("T")[0];
-    const dayName = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"][now.getDay()];
-
-    return MOCK_SCHEDULES
-        .filter(s => s.days.includes(dayName))
-        .map((schedule, index) => {
-            const scheduleHour = parseInt(schedule.scheduledTime.split(":")[0]);
-            let status: "PENDING" | "TAKEN" | "MISSED" | "SKIPPED" = "PENDING";
-            let takenAt: string | null = null;    
-
-            // Simulate some taken medications (morning ones)
-            if (scheduleHour < 10 && currentHour >= 10) {
-                status = "TAKEN";
-                takenAt = `${today}T${schedule.scheduledTime}:00`;
-            }
-            // Simulate missed if scheduled time passed more than 2 hours ago
-            else if (scheduleHour < currentHour - 2) {
-                status = "MISSED";
-            }
-
-            return {
-                intakeId: index + 1,
-                scheduleId: schedule.scheduleId,
-                medicineName: schedule.medicineName,
-                dosage: schedule.dosage,
-                scheduledTime: schedule.scheduledTime,
-                takenAt,
-                status,
-                date: today,
-            };
-        });
-};
-// ============ END MOCK DATA ============
-
 const DAYS_OF_WEEK = [
     { key: "MONDAY", labelKey: "medtracker.monday" },
     { key: "TUESDAY", labelKey: "medtracker.tuesday" },
@@ -107,10 +51,6 @@ export const MedicationTracker = () => {
     const [submitting, setSubmitting] = useState(false);
 
     const fetchTodayIntakes = useCallback(async () => {
-        if (USE_MOCK_DATA) {
-            setTodayIntakes(generateMockIntakes());
-            return;
-        }
         try {
             const res = await fetchApi("GET", "/medicines/intakes/today");
             if (res.ok) {
@@ -128,10 +68,6 @@ export const MedicationTracker = () => {
     }, []);
 
     const fetchSchedules = useCallback(async () => {
-        if (USE_MOCK_DATA) {
-            setSchedules([...MOCK_SCHEDULES]);
-            return;
-        }
         try {
             const res = await fetchApi("GET", "/medicines/schedules");
             if (res.ok) {
@@ -149,10 +85,6 @@ export const MedicationTracker = () => {
     }, []);
 
     const fetchMedications = useCallback(async () => {
-        if (USE_MOCK_DATA) {
-            setMedications([...MOCK_MEDICATIONS]);
-            return;
-        }
         try {
             const res = await fetchApi("GET", "/medicines/list");
             if (res.ok) {
@@ -168,10 +100,6 @@ export const MedicationTracker = () => {
 
     useEffect(() => {
         const checkSession = async () => {
-            if (USE_MOCK_DATA) {
-                setLoggedIn(true);
-                return;
-            }
             try {
                 const res = await fetchApi("GET", "/auth/session-status");
                 const data = await res.json();
@@ -201,16 +129,6 @@ export const MedicationTracker = () => {
     }, [loggedIn, fetchTodayIntakes]);
 
     const markIntake = async (intakeId: number, status: "TAKEN" | "SKIPPED") => {
-        if (USE_MOCK_DATA) {
-            setTodayIntakes(prev => prev.map(intake =>
-                intake.intakeId === intakeId
-                    ? { ...intake, status, takenAt: status === "TAKEN" ? new Date().toISOString() : null }
-                    : intake
-            ));
-            setSuccessMessage(t("medtracker.intake_updated", lang));
-            setTimeout(() => setSuccessMessage(null), 3000);
-            return;
-        }
         try {
             const res = await fetchApi("PATCH", `/medicines/intakes/${intakeId}`, {
                 body: JSON.stringify({ status }),
@@ -235,32 +153,6 @@ export const MedicationTracker = () => {
         if (!selectedMedicineId || selectedDays.length === 0) return;
 
         setSubmitting(true);
-        
-        if (USE_MOCK_DATA) {
-            const med = medications.find(m => m.medicineId === selectedMedicineId);
-            if (med) {
-                const newSchedule: MedicationSchedule = {
-                    scheduleId: Date.now(),
-                    medicineId: med.medicineId,
-                    medicineName: med.name,
-                    dosage: med.dosage,
-                    scheduledTime,
-                    days: selectedDays,
-                    notes: scheduleNotes || null,
-                    isActive: true,
-                };
-                setSchedules(prev => [...prev, newSchedule]);
-                MOCK_SCHEDULES.push(newSchedule);
-                setSuccessMessage(t("medtracker.schedule_created", lang));
-                setShowAddModal(false);
-                resetForm();
-                // Regenerate today's intakes to include new schedule
-                setTodayIntakes(generateMockIntakes());
-                setTimeout(() => setSuccessMessage(null), 3000);
-            }
-            setSubmitting(false);
-            return;
-        }
         
         try {
             const res = await fetchApi("POST", "/medicines/schedules", {
@@ -292,16 +184,6 @@ export const MedicationTracker = () => {
 
     const deleteSchedule = async (scheduleId: number) => {
         if (!confirm(t("medtracker.confirm_delete", lang))) return;
-
-        if (USE_MOCK_DATA) {
-            setSchedules(prev => prev.filter(s => s.scheduleId !== scheduleId));
-            const idx = MOCK_SCHEDULES.findIndex(s => s.scheduleId === scheduleId);
-            if (idx > -1) MOCK_SCHEDULES.splice(idx, 1);
-            setTodayIntakes(prev => prev.filter(i => i.scheduleId !== scheduleId));
-            setSuccessMessage(t("medtracker.schedule_deleted", lang));
-            setTimeout(() => setSuccessMessage(null), 3000);
-            return;
-        }
 
         try {
             const res = await fetchApi("DELETE", `/medicines/schedules/${scheduleId}`);

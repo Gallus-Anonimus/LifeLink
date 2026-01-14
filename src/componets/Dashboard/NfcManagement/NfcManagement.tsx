@@ -1,6 +1,6 @@
 import { useLanguage } from "../../../context/LanguageContext.tsx";
 import { t } from "../../../assets/languages.ts";
-import { IconNfc, IconTrash, IconScan, IconDeviceFloppy, IconLink, IconCopy, IconExternalLink } from "@tabler/icons-react";
+import { IconNfc, IconTrash, IconScan, IconDeviceFloppy, IconLink, IconCopy, IconExternalLink, IconUsers } from "@tabler/icons-react";
 import { useState, useRef, useEffect, type FormEvent } from "react";
 import { registerNfcTag, deregisterNfcTag, fetchApi } from "../../../context/utils.ts";
 import { extractEmergencyData, buildSmartPosterUrl } from "../../../utils/hashData.ts";
@@ -36,6 +36,8 @@ export const NfcManagement = () => {
     const [isWriting, setIsWriting] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
     const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
+    const [childrenMode, setChildrenMode] = useState(false);
+    const [lastWrittenUrl, setLastWrittenUrl] = useState<string | null>(null);
     const [message, setMessage] = useState<string | null>(null);
     const [messageType, setMessageType] = useState<"success" | "error" | null>(null);
     const [, setIsRegistered] = useState<boolean | null>(null);
@@ -302,7 +304,7 @@ export const NfcManagement = () => {
             );
 
             // Build Smart-Poster URL
-            const smartPosterUrl = buildSmartPosterUrl(emergencyData);
+            const smartPosterUrl = buildSmartPosterUrl(emergencyData, { childrenMode });
 
             // Write to NFC tag
             const reader = new NDEFReader();
@@ -314,6 +316,7 @@ export const NfcManagement = () => {
                 }]
             });
 
+            setLastWrittenUrl(smartPosterUrl);
             showMessage(t("nfc.write.success", lang), "success");
         } catch (error) {
             const err = error as DOMException;
@@ -420,7 +423,7 @@ export const NfcManagement = () => {
             );
 
             // Build Smart-Poster URL
-            const smartPosterUrl = buildSmartPosterUrl(emergencyData);
+            const smartPosterUrl = buildSmartPosterUrl(emergencyData, { childrenMode });
             setGeneratedUrl(smartPosterUrl);
             showMessage(t("nfc.generate.success", lang), "success");
         } catch (error) {
@@ -560,6 +563,29 @@ export const NfcManagement = () => {
                         <p className="text-muted small mb-3">
                             {t("nfc.write.description", lang)}
                         </p>
+                        
+                        <div className="form-check form-switch mb-3">
+                            <input
+                                className="form-check-input"
+                                type="checkbox"
+                                role="switch"
+                                id="childrenModeWriteToggle"
+                                checked={childrenMode}
+                                onChange={(e) => {
+                                    setChildrenMode(e.target.checked);
+                                    setLastWrittenUrl(null);
+                                    setGeneratedUrl(null);
+                                }}
+                            />
+                            <label className="form-check-label d-flex align-items-center" htmlFor="childrenModeWriteToggle">
+                                <IconUsers size={18} className="me-2" />
+                                {t("nfc.generate.children_mode", lang)}
+                            </label>
+                            <small className="d-block text-muted mt-1">
+                                {t("nfc.generate.children_mode_description", lang)}
+                            </small>
+                        </div>
+
                         <button
                             type="button"
                             className="btn btn-success w-100 d-flex align-items-center justify-content-center"
@@ -578,6 +604,44 @@ export const NfcManagement = () => {
                                 </>
                             )}
                         </button>
+
+                        {lastWrittenUrl && (
+                            <div className="mt-3">
+                                <small className="text-muted d-block mb-1">{t("nfc.write.last_written", lang)}:</small>
+                                <div className="input-group">
+                                    <input
+                                        type="text"
+                                        className="form-control form-control-sm"
+                                        value={lastWrittenUrl}
+                                        readOnly
+                                        style={{ fontSize: "0.75rem" }}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="btn btn-outline-secondary btn-sm"
+                                        onClick={async () => {
+                                            try {
+                                                await navigator.clipboard.writeText(lastWrittenUrl);
+                                                showMessage(t("nfc.generate.copied", lang), "success");
+                                            } catch {
+                                                showMessage(t("nfc.generate.copy_error", lang), "error");
+                                            }
+                                        }}
+                                        title={t("nfc.generate.copy", lang)}
+                                    >
+                                        <IconCopy size={16} />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="btn btn-outline-primary btn-sm"
+                                        onClick={() => window.open(lastWrittenUrl, '_blank')}
+                                        title={t("nfc.generate.open", lang)}
+                                    >
+                                        <IconExternalLink size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <hr className="my-4" />
@@ -587,6 +651,29 @@ export const NfcManagement = () => {
                         <p className="text-muted small mb-3">
                             {t("nfc.generate.description", lang)}
                         </p>
+                        
+                        <div className="form-check form-switch mb-3">
+                            <input
+                                className="form-check-input"
+                                type="checkbox"
+                                role="switch"
+                                id="childrenModeToggle"
+                                checked={childrenMode}
+                                onChange={(e) => {
+                                    setChildrenMode(e.target.checked);
+                                    setGeneratedUrl(null);
+                                    setLastWrittenUrl(null);
+                                }}
+                            />
+                            <label className="form-check-label d-flex align-items-center" htmlFor="childrenModeToggle">
+                                <IconUsers size={18} className="me-2" />
+                                {t("nfc.generate.children_mode", lang)}
+                            </label>
+                            <small className="d-block text-muted mt-1">
+                                {t("nfc.generate.children_mode_description", lang)}
+                            </small>
+                        </div>
+
                         <button
                             type="button"
                             className="btn btn-info w-100 d-flex align-items-center justify-content-center text-white"

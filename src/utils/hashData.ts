@@ -66,24 +66,26 @@ export function decodeEmergencyData(hash: string): EmergencyData | null {
 
 /**
  * Build Smart-Poster URL with embedded emergency data in hash fragment
- * For children mode (offline cache support)
+ * Supports both regular and children mode
  */
-export function buildSmartPosterUrl(data: EmergencyData, baseUrl?: string): string {
+export function buildSmartPosterUrl(data: EmergencyData, options?: { baseUrl?: string; childrenMode?: boolean }): string {
     const encoded = encodeEmergencyData(data);
+    const childrenMode = options?.childrenMode ?? true; // Default to children mode for backwards compatibility
     let base: string;
     
-    if (baseUrl) {
-        base = baseUrl;
+    if (options?.baseUrl) {
+        base = options.baseUrl;
     } else if (typeof window !== 'undefined') {
-        // Use current origin and path, but ensure we're on the /card/children route
         const origin = window.location.origin;
         const pathname = window.location.pathname;
-        // Remove trailing slash and any route params, then add /card/children
+        // Remove trailing slash and any route params
         const basePath = pathname.replace(/\/[^/]*$/, '').replace(/\/$/, '') || '';
-        base = `${origin}${basePath}/card/children`;
+        const route = childrenMode ? '/card/children' : '/card';
+        base = `${origin}${basePath}${route}`;
     } else {
-        // Default production URL for children mode
-        base = 'https://gallus-anonimus.github.io/LifeLink/card/children';
+        // Default production URL
+        const route = childrenMode ? '/card/children' : '/card';
+        base = `https://gallus-anonimus.github.io/LifeLink${route}`;
     }
     
     return `${base}#${encoded}`;
