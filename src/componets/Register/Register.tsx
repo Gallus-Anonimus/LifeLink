@@ -107,6 +107,7 @@ const emptyPerson = (id = 0): Person => ({
   lastName: '',
   phoneNumber: '',
   gender: 'MALE',
+  email: '',
   address: emptyAddress(),
 });
 
@@ -156,7 +157,7 @@ export default function Register(): React.ReactElement {
     if (!patient.person.firstName) e['person.firstName'] = tLocal(lang, 'required');
     if (!patient.person.lastName) e['person.lastName'] = tLocal(lang, 'required');
     if (!patient.pesel) e['pesel'] = tLocal(lang, 'required');
-    if (!patient.email || !/^\S+@\S+\.\S+$/.test(patient.email)) e['email'] = tLocal(lang, 'invalidEmail');
+    if (!patient.person.email || !/^\S+@\S+\.\S+$/.test(patient.person.email)) e['email'] = tLocal(lang, 'invalidEmail');
     if (!password) e['password'] = tLocal(lang, 'required');
     else if (password.length < 8) e['password'] = tLocal(lang, 'passwordTooShort');
     if (!confirmPassword) e['confirmPassword'] = tLocal(lang, 'required');
@@ -174,7 +175,6 @@ export default function Register(): React.ReactElement {
     setSubmitSuccess(false);
 
     const payload = {
-      email: patient.email,
       password: password,
       pesel: patient.pesel,
       dateOfBirth: changeDate(patient.dateOfBirth) || undefined,
@@ -185,12 +185,13 @@ export default function Register(): React.ReactElement {
         lastName: patient.person.lastName,
         phoneNumber: patient.person.phoneNumber || undefined,
         gender: patient.person.gender,
+        email: patient.person.email,
         address: {
           country: patient.person.address.country || 'POLAND',
-          postalCode: patient.person.address.postalCode || undefined,
-          city: patient.person.address.city || undefined,
-          street: patient.person.address.street || undefined,
-          buildingNumber: patient.person.address.buildingNumber || undefined,
+          postalCode: patient.person.address.postalCode || "",
+          city: patient.person.address.city || "",
+          street: patient.person.address.street || "",
+          buildingNumber: patient.person.address.buildingNumber || "",
         },
       },
       emergencyContact: useContact && patient.contactPerson ? {
@@ -199,12 +200,13 @@ export default function Register(): React.ReactElement {
         lastName: patient.contactPerson.lastName,
         phoneNumber: patient.contactPerson.phoneNumber || undefined,
         gender: patient.contactPerson.gender,
+        email: patient.contactPerson.email,
         address: {
           country: patient.contactPerson.address.country || 'POLAND',
-          postalCode: patient.contactPerson.address.postalCode || undefined,
-          city: patient.contactPerson.address.city || undefined,
-          street: patient.contactPerson.address.street || undefined,
-          buildingNumber: patient.contactPerson.address.buildingNumber || undefined,
+          postalCode: patient.contactPerson.address.postalCode || "",
+          city: patient.contactPerson.address.city || "",
+          street: patient.contactPerson.address.street || "",
+          buildingNumber: patient.contactPerson.address.buildingNumber || "",
         },
       } : undefined,
     };
@@ -353,8 +355,8 @@ export default function Register(): React.ReactElement {
                       </InputGroup.Text>
                       <Form.Control
                         type="email"
-                        value={patient.email}
-                        onChange={e => setPatient(p => ({ ...p, email: e.target.value }))}
+                        value={patient.person.email}
+                        onChange={e => handlePersonChange("email", e.target.value)}
                         isInvalid={!!errors['email']}
                       />
                       <Form.Control.Feedback type="invalid">{errors['email']}</Form.Control.Feedback>
@@ -567,6 +569,21 @@ export default function Register(): React.ReactElement {
                           value={patient.contactPerson?.address.city ?? ''}
                           onChange={e => handlePersonChange('address.city', e.target.value, true)}
                         />
+                      </Col>
+                      <Col md={6} className="mb-3">
+                        <Form.Label className="fw-semibold">{tLocal(lang, 'email')} </Form.Label>
+                        <InputGroup>
+                          <InputGroup.Text>
+                            <IconMail size={18} />
+                          </InputGroup.Text>
+                          <Form.Control
+                              type="email"
+                              value={patient.contactPerson?.email ?? ''}
+                              onChange={e => handlePersonChange('email', e.target.value, true)}
+                              isInvalid={!!errors['email']}
+                          />
+                          <Form.Control.Feedback type="invalid">{errors['email']}</Form.Control.Feedback>
+                        </InputGroup>
                       </Col>
                     </Row>
                   </div>

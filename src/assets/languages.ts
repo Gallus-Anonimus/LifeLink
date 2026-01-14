@@ -188,6 +188,8 @@ export const locales: LocaleRow[] = [
     ["medicalcard.procedure_date", "Data Zabiegu", "Procedure Date"],
     ["medicalcard.start_date", "Data rozpoczęcia", "Start date"],
     ["medicalcard.end_date", "Data zakończenia", "End date"],
+    ["medicalcard.medication_notes","Notatka o lekach","Medications notes"],
+    ["medicalcard.dosage","Dawka", "Dosage"],
 
     ["address.address", "Adres", "Address"],
     ["address.city", "Miasto", "City"],

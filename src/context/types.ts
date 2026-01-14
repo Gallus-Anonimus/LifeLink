@@ -20,6 +20,7 @@ export interface Person  {
     phoneNumber: string,
     gender: "MALE" | "FEMALE",
     address: Address,
+    email: string,
 }
 
 export interface PatientInfoType {
@@ -54,12 +55,8 @@ export interface Card {
 
 export interface Medication {
     medicineId: number,
-    name: string,
+    medicineName: string,
     notes?: string | null,
-    dosage: string,
-    frequency: string,
-    startDate: string,
-    endDate?: string | null
 }
 
 export interface MedicationsProps {
@@ -154,33 +151,19 @@ export interface MedicalCheckupProps {
 // Medication Tracker Types
 export interface MedicationSchedule {
     scheduleId: number;
-    medicineId: number;
-    medicineName: string;
+    medicine: Medication;
     dosage: string;
-    scheduledTime: string; // HH:mm format
-    days: string[]; // e.g., ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+    executionTime: string; // HH:mm format
+    weekDays: WeekDay[]; // e.g., ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     notes?: string | null;
-    isActive: boolean;
 }
 
-export interface MedicationIntake {
-    intakeId: number;
-    scheduleId: number;
-    medicineName: string;
-    dosage: string;
-    scheduledTime: string;
-    takenAt?: string | null; // ISO date-time if taken
-    status: "PENDING" | "TAKEN" | "MISSED" | "SKIPPED";
-    date: string; // ISO date
-}
+export type WeekDay = "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
 
 export interface MedicationScheduleCreate {
     medicineId: number;
-    scheduledTime: string;
+    executionTime: string;
     days: string[];
     notes?: string;
 }
 
-export interface TodayMedicationsResponse {
-    items: MedicationIntake[];
-}

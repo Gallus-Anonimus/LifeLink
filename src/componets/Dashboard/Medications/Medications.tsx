@@ -1,8 +1,8 @@
 import { useLanguage } from "../../../context/LanguageContext.tsx";
 import { t } from "../../../assets/languages.ts";
-import { IconPill, IconPlus, IconTrash } from "@tabler/icons-react";
-import { useState } from "react";
-import {changeDate, fetchApi} from "../../../context/utils.ts";
+import { IconPill, IconPlus, IconTrash} from "@tabler/icons-react";
+import {useEffect, useState} from "react";
+import { fetchApi} from "../../../context/utils.ts";
 import {type Medication, type MedicationsProps} from "../../../context/types.ts"
 
 export const Medications = ({ medications: initialMedications = [] }: MedicationsProps) => {
@@ -11,10 +11,6 @@ export const Medications = ({ medications: initialMedications = [] }: Medication
     const [showAdd, setShowAdd] = useState(false);
     const [newName, setNewName] = useState("");
     const [newNotes, setNewNotes] = useState("");
-    const [newDosage, setNewDosage] = useState("");
-    const [newFrequency, setNewFrequency] = useState("");
-    const [newStartDate, setNewStartDate] = useState("");
-    const [newEndDate, setNewEndDate] = useState("");
 
     const fetchMedications = async () => {
         try {
@@ -34,10 +30,6 @@ export const Medications = ({ medications: initialMedications = [] }: Medication
         const payload = {
             name: newName.trim(),
             notes: newNotes.trim(),
-            dosage: newDosage.trim(),
-            frequency: newFrequency.trim(),
-            startDate: changeDate(newStartDate) || undefined,
-            endDate: changeDate(newEndDate) || null
         };
         try {
             const res = await fetchApi("POST", "/medicines/add", {
@@ -48,10 +40,6 @@ export const Medications = ({ medications: initialMedications = [] }: Medication
                 await fetchMedications();
                 setNewName("");
                 setNewNotes("");
-                setNewDosage("");
-                setNewFrequency("");
-                setNewStartDate("");
-                setNewEndDate("");
                 setShowAdd(false);
             } else {
                 console.error("Add failed", res.status);
@@ -60,6 +48,10 @@ export const Medications = ({ medications: initialMedications = [] }: Medication
             console.error("Add error", err);
         }
     };
+
+    useEffect(() => {
+        fetchMedications();
+    },[])
 
     const deleteMedication = async (id: number) => {
         try {
@@ -93,25 +85,9 @@ export const Medications = ({ medications: initialMedications = [] }: Medication
                                 <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.medication_name", lang)}</label>
                                 <input className="form-control form-control-sm" value={newName} onChange={e => setNewName(e.target.value)} required />
                             </div>
-                            <div className="row g-2">
-                                <div className="col-6">
-                                    <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.dose", lang)}</label>
-                                    <input className="form-control form-control-sm" value={newDosage} onChange={e => setNewDosage(e.target.value)} />
-                                </div>
-                                <div className="col-6">
-                                    <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.frequency", lang)}</label>
-                                    <input className="form-control form-control-sm" value={newFrequency} onChange={e => setNewFrequency(e.target.value)} />
-                                </div>
-                            </div>
-                            <div className="row g-2 mt-2">
-                                <div className="col-6">
-                                    <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.start_date", lang)}</label>
-                                    <input type="date" className="form-control form-control-sm" value={newStartDate} onChange={e => setNewStartDate(e.target.value)} />
-                                </div>
-                                <div className="col-6">
-                                    <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.end_date", lang)}</label>
-                                    <input type="date" className="form-control form-control-sm" value={newEndDate} onChange={e => setNewEndDate(e.target.value)} />
-                                </div>
+                            <div className="mb-2">
+                                <label className="form-label small fw-semibold text-muted">{t("medicalcard.medication_notes",lang)}</label>
+                                <textarea className="form-control form-control-sm" value={newNotes} onChange={e => setNewNotes(e.target.value)}></textarea>
                             </div>
                             <div className="mt-2 d-flex gap-2">
                                 <button type="submit" className="btn btn-sm btn-info text-white">{t("button.save", lang)}</button>
@@ -124,27 +100,11 @@ export const Medications = ({ medications: initialMedications = [] }: Medication
                         <div key={med.medicineId} className="border rounded p-3 mb-3" style={{ backgroundColor: "#f0f9ff" }}>
                             <div className="mb-2">
                                 <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.medication_name", lang)}</label>
-                                <input type="text" className="form-control form-control-sm" value={med.name} readOnly />
+                                <input type="text" className="form-control form-control-sm" value={med.medicineName} readOnly />
                             </div>
-                            <div className="row g-2">
-                                <div className="col-6">
-                                    <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.dose", lang)}</label>
-                                    <input type="text" className="form-control form-control-sm" value={med.dosage} readOnly />
-                                </div>
-                                <div className="col-6">
-                                    <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.frequency", lang)}</label>
-                                    <input type="text" className="form-control form-control-sm" value={med.frequency} readOnly />
-                                </div>
-                            </div>
-                            <div className="row g-2 mt-2">
-                                <div className="col-6">
-                                    <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.from_date", lang)}</label>
-                                    <input type="date" className="form-control form-control-sm" value={med.startDate} readOnly />
-                                </div>
-                                <div className="col-6">
-                                    <label className="form-label small fw-semibold text-muted mb-1">{t("medicalcard.to_date", lang)}</label>
-                                    <input type="date" className="form-control form-control-sm" value={med.endDate || ""} readOnly />
-                                </div>
+                            <div className="mb-2">
+                                <label className="form-label small fw-semibold text-muted">{t("medicalcard.medication_notes", lang)}</label>
+                                <textarea className="form-control form-control-sm" readOnly value={med.notes || ""}></textarea>
                             </div>
                             <div className="d-flex justify-content-end mt-2">
                                 <button className="btn btn-sm btn-outline-info d-flex align-items-center" onClick={() => deleteMedication(med.medicineId)}>

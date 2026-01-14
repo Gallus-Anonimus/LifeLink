@@ -1,4 +1,6 @@
 import {baseURL} from "../assets/const.ts";
+import { DateTime } from "luxon";
+
 
 export  const fetchApi = async (method: string, path: string, options: RequestInit = {}) => {
     const url = `${baseURL}${path}`;
@@ -77,5 +79,18 @@ export const deregisterNfcTag = async () => {
         throw error;
     }
 }
+
+
+export const toUtcTime = (localTime: string): string =>
+    DateTime.fromFormat(localTime, "HH:mm", {
+        zone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    })
+        .toUTC()
+        .toFormat("HH:mm");
+
+export const toLocalTime = (utcTime: string): string =>
+    DateTime.fromFormat(utcTime, "HH:mm:ss", { zone: "utc" })
+        .setZone(Intl.DateTimeFormat().resolvedOptions().timeZone)
+        .toFormat("HH:mm");
 
 
